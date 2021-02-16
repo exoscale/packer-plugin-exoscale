@@ -3,18 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
-	"packer-plugin-scaffolding/builder/scaffolding"
-	scaffoldingData "packer-plugin-scaffolding/datasource/scaffolding"
-	scaffoldingPP "packer-plugin-scaffolding/post-processor/scaffolding"
-	scaffoldingProv "packer-plugin-scaffolding/provisioner/scaffolding"
 
 	"github.com/hashicorp/packer-plugin-sdk/plugin"
 	"github.com/hashicorp/packer-plugin-sdk/version"
+
+	"github.com/exoscale/packer-plugin-exoscale/builder/exoscale"
+	exoscaleimport "github.com/exoscale/packer-plugin-exoscale/post-processor/exoscale-import"
 )
 
 var (
 	// Version is the main version number that is being run at the moment.
-	Version = "0.0.1"
+	Version = "0.0.0"
 
 	// VersionPrerelease is A pre-release marker for the Version. If this is ""
 	// (empty string) then it means that it is a final release. Otherwise, this
@@ -28,14 +27,13 @@ var (
 
 func main() {
 	pps := plugin.NewSet()
-	pps.RegisterBuilder("my-builder", new(scaffolding.Builder))
-	pps.RegisterProvisioner("my-provisioner", new(scaffoldingProv.Provisioner))
-	pps.RegisterPostProcessor("my-post-processor", new(scaffoldingPP.PostProcessor))
-	pps.RegisterDatasource("my-datasource", new(scaffoldingData.Datasource))
+	pps.RegisterBuilder(plugin.DEFAULT_NAME, new(exoscale.Builder))
+	pps.RegisterPostProcessor("import", new(exoscaleimport.PostProcessor))
 	pps.SetVersion(PluginVersion)
+
 	err := pps.Run()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		_, _ = fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 }

@@ -1,37 +1,61 @@
-# Packer Plugin Scaffolding
+# Exoscale Packer Plugin
 
-This repository is a template for a Packer multi-plugin. It is intended as a starting point for creating Packer plugins, containing:
-- A builder (`builder/scaffolding`)
-- A provisioner (`provisioner/scaffolding`)
-- A post-processor (`post-processor/scaffolding`)
-- A data source (`datasource/scaffolding`)
-- Docs (`docs/`)
+[![Actions Status](https://github.com/exoscale/packer-plugin-exoscale/workflows/CI/badge.svg?branch=master)](https://github.com/exoscale/packer-plugin-exoscale/actions?query=workflow%3ACI+branch%3Amaster)
 
-These folders contain boilerplate code that you will need to edit to create your own Packer multi-plugin.
-A full guide to creating Packer plugins can be found at [Extending Packer](https://www.packer.io/docs/extending).
+The `exoscale` multi-plugin can be used with HashiCorp [Packer][packer]
+to create [Compute instance custom templates][exo-doc-custom-templates].
 
-In this repository you will also find a pre-defined GitHub Action configuration for the release workflow
-(`.goreleaser.yml` and `.github/workflows/release.yml`). The release workflow configuration makes sure the GitHub
-release artifacts are created with the correct binaries and naming conventions.
 
-Please see the [GitHub template repository documentation](https://docs.github.com/en/free-pro-team@latest/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template)
-for how to create a new repository from this template on GitHub.
+## Installation
 
-## Running Acceptance Tests
+### Using pre-built releases
 
-Make sure to install the plugin with `go install .` and to have Packer installed locally.  
-Then source the built binary to the plugin path with `ln -s $GOPATH/bin/packer-plugin-scaffolding ~/.packer.d/plugins/packer-plugin-scaffolding`  
-Once everything needed is set up, run:  
-```
-PACKER_ACC=1 go test -count 1 -v ./... -timeout=120m
-```
+#### Using the `packer init` command
 
-This will run the acceptance tests for all plugins in this set.
+Starting from version 1.7, Packer supports a new `packer init` command allowing
+automatic installation of Packer plugins. Read the
+[Packer documentation][packer-doc-init] for more information
 
-## Requirements
 
--	[packer-plugin-sdk](https://github.com/hashicorp/packer-plugin-sdk) >= 0.0.11
--	[Go](https://golang.org/doc/install) >= 1.15
+#### Manual installation
 
-## Packer Compatibility
-This scaffolding template is compatible with Packer >= v1.7.0 (to be released)
+You can find pre-built binary releases of the plugin [here][releases].
+Once you have downloaded the latest archive corresponding to your target OS,
+uncompress it to retrieve the plugin binary file corresponding to your platform.
+To install the plugin, please follow the Packer documentation on
+[installing a plugin][packer-doc-plugins].
+
+
+### From Sources
+
+If you prefer to build the plugin from sources, clone the GitHub repository
+locally and run the command `make build` from the root of the sources
+directory. Upon successful compilation, a `packer-plugin-exoscale` plugin
+binary file can be found in the `bin/` directory.
+To install the compiled plugin, please follow the official Packer documentation
+on [installing a plugin][packer-doc-plugins].
+
+
+### Configuration
+
+For more information on how to configure the plugin, please read the
+documentation located in the [`docs/`](docs) directory.
+
+
+## Contributing
+
+* If you think you've found a bug in the code or you have a question regarding
+  the usage of this software, please reach out to us by opening an issue in
+  this GitHub repository.
+* Contributions to this project are welcome: if you want to add a feature or a
+  fix a bug, please do so by opening a Pull Request in this GitHub repository.
+  In case of feature contribution, we kindly ask you to open an issue to
+  discuss it beforehand.
+
+
+[packer-doc-plugins]: https://www.packer.io/docs/extending/plugins/#installing-plugins
+[exo-doc-custom-templates]: https://community.exoscale.com/documentation/compute/custom-templates/
+[packer-doc-init]: https://www.packer.io/docs/commands/init
+[packer-doc-plugins]: https://www.packer.io/docs/extending/plugins/#installing-plugins
+[packer]: https://www.packer.io/
+[releases]: https://github.com/exoscale/packer-plugin-exoscale/releases
