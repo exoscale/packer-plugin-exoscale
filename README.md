@@ -1,6 +1,6 @@
 # Exoscale Packer Plugin
 
-[![Actions Status](https://github.com/exoscale/packer-plugin-exoscale/workflows/CI/badge.svg?branch=master)](https://github.com/exoscale/packer-plugin-exoscale/actions?query=workflow%3ACI+branch%3Amaster)
+[![Actions Status](https://github.com/exoscale/packer-plugin-exoscale/workflows/CI/badge.svg?branch=main)](https://github.com/exoscale/packer-plugin-exoscale/actions?query=workflow%3ACI+branch%3Amain)
 
 The `exoscale` multi-plugin can be used with HashiCorp [Packer][packer]
 to create [Compute instance custom templates][exo-doc-custom-templates].
