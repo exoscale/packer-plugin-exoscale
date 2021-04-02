@@ -27,11 +27,11 @@ github.com/ChrisTrenkamp/goxpath/tree/xmltree/xmlnode
 github.com/ChrisTrenkamp/goxpath/xconst
 # github.com/agext/levenshtein v1.2.1
 github.com/agext/levenshtein
-# github.com/apparentlymart/go-textseg/v12 v12.0.0
-github.com/apparentlymart/go-textseg/v12/textseg
+# github.com/apparentlymart/go-textseg/v13 v13.0.0
+github.com/apparentlymart/go-textseg/v13/textseg
 # github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878
 github.com/armon/go-metrics
-# github.com/aws/aws-sdk-go v1.36.5
+# github.com/aws/aws-sdk-go v1.38.0
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
 github.com/aws/aws-sdk-go/aws/awserr
@@ -43,6 +43,7 @@ github.com/aws/aws-sdk-go/aws/credentials
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
 github.com/aws/aws-sdk-go/aws/credentials/processcreds
+github.com/aws/aws-sdk-go/aws/credentials/ssocreds
 github.com/aws/aws-sdk-go/aws/credentials/stscreds
 github.com/aws/aws-sdk-go/aws/csm
 github.com/aws/aws-sdk-go/aws/defaults
@@ -72,11 +73,14 @@ github.com/aws/aws-sdk-go/private/protocol/jsonrpc
 github.com/aws/aws-sdk-go/private/protocol/query
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/rest
+github.com/aws/aws-sdk-go/private/protocol/restjson
 github.com/aws/aws-sdk-go/private/protocol/restxml
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3
 github.com/aws/aws-sdk-go/service/secretsmanager
 github.com/aws/aws-sdk-go/service/secretsmanager/secretsmanageriface
+github.com/aws/aws-sdk-go/service/sso
+github.com/aws/aws-sdk-go/service/sso/ssoiface
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/aws/aws-sdk-go-v2 v1.2.1
@@ -162,7 +166,6 @@ github.com/cheggaaa/pb
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/deepmap/oapi-codegen v1.5.1
-## explicit
 github.com/deepmap/oapi-codegen/pkg/runtime
 github.com/deepmap/oapi-codegen/pkg/types
 # github.com/dylanmei/iso8601 v0.1.0
@@ -178,7 +181,6 @@ github.com/fatih/color
 # github.com/gofrs/flock v0.7.3
 github.com/gofrs/flock
 # github.com/gofrs/uuid v4.0.0+incompatible
-## explicit
 github.com/gofrs/uuid
 # github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 github.com/golang/groupcache/lru
@@ -192,7 +194,7 @@ github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/golang/snappy v0.0.1
 github.com/golang/snappy
-# github.com/google/go-cmp v0.5.4
+# github.com/google/go-cmp v0.5.5
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
@@ -208,7 +210,7 @@ github.com/hashicorp/consul/api
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-checkpoint v0.0.0-20171009173528-1545e56e46de
 github.com/hashicorp/go-checkpoint
-# github.com/hashicorp/go-cleanhttp v0.5.1
+# github.com/hashicorp/go-cleanhttp v0.5.2
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-getter/gcs/v2 v2.0.0-20200604122502-a6995fa1edad
 github.com/hashicorp/go-getter/gcs/v2
@@ -221,7 +223,7 @@ github.com/hashicorp/go-getter/v2/helper/url
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-immutable-radix v1.1.0
 github.com/hashicorp/go-immutable-radix
-# github.com/hashicorp/go-multierror v1.1.0
+# github.com/hashicorp/go-multierror v1.1.1
 github.com/hashicorp/go-multierror
 # github.com/hashicorp/go-retryablehttp v0.5.4
 github.com/hashicorp/go-retryablehttp
@@ -247,25 +249,26 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/hashicorp/hcl/v2 v2.8.0
+# github.com/hashicorp/hcl/v2 v2.9.1
 ## explicit
 github.com/hashicorp/hcl/v2
 github.com/hashicorp/hcl/v2/ext/customdecode
 github.com/hashicorp/hcl/v2/hcldec
-# github.com/hashicorp/packer v1.6.7-0.20210208125835-f616955ebcb6
+# github.com/hashicorp/packer v1.7.1
 github.com/hashicorp/packer/hcl2template/addrs
 github.com/hashicorp/packer/packer
 github.com/hashicorp/packer/packer/plugin-getter
 github.com/hashicorp/packer/provisioner/file
 github.com/hashicorp/packer/provisioner/shell
 github.com/hashicorp/packer/version
-# github.com/hashicorp/packer-plugin-sdk v0.0.12
+# github.com/hashicorp/packer-plugin-sdk v0.1.2
 ## explicit
 github.com/hashicorp/packer-plugin-sdk/acctest
 github.com/hashicorp/packer-plugin-sdk/common
 github.com/hashicorp/packer-plugin-sdk/communicator
 github.com/hashicorp/packer-plugin-sdk/communicator/ssh
 github.com/hashicorp/packer-plugin-sdk/communicator/sshkey
+github.com/hashicorp/packer-plugin-sdk/didyoumean
 github.com/hashicorp/packer-plugin-sdk/filelock
 github.com/hashicorp/packer-plugin-sdk/multistep
 github.com/hashicorp/packer-plugin-sdk/multistep/commonsteps
@@ -303,7 +306,6 @@ github.com/hashicorp/vault/sdk/helper/strutil
 # github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d
 github.com/hashicorp/yamux
 # github.com/jarcoal/httpmock v1.0.8
-## explicit
 github.com/jarcoal/httpmock
 github.com/jarcoal/httpmock/internal
 # github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869
@@ -376,7 +378,7 @@ github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/hash
 github.com/ulikunitz/xz/internal/xlog
 github.com/ulikunitz/xz/lzma
-# github.com/zclconf/go-cty v1.7.0
+# github.com/zclconf/go-cty v1.8.1
 ## explicit
 github.com/zclconf/go-cty/cty
 github.com/zclconf/go-cty/cty/convert
@@ -442,7 +444,7 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
+# golang.org/x/sys v0.0.0-20210319071255-635bc2c9138d
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
