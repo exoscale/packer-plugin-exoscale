@@ -1,10 +1,3 @@
----
-description: >
-  The exoscale-import post-processor is used to import Exoscale custom templates from disk image files.
-page_title: Scaffolding - Post-Processors
-sidebar_title: Exoscale
----
-
 # Exoscale Import Post-processor
 
 Type: `exoscale-import`

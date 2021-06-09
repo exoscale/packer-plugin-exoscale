@@ -1,10 +1,3 @@
----
-description: >
-  The exoscale builder is used to create Exoscale custom templates based on a Compute instance snapshot.
-page_title: Exoscale - Builders
-sidebar_title: Exoscale
----
-
 # Exoscale Builder
 
 Type: `exoscale`
