@@ -64,11 +64,10 @@ func TestAccPostProcessor(t *testing.T) {
 
 	a := artifact.(*Artifact)
 	require.NotNil(t, a.template.ID)
-	require.Equal(t, testAccTemplateZone, a.template.ZoneName)
-	require.Equal(t, testAccTemplateName, a.template.Name)
-	require.Equal(t, testAccTemplateDescription, a.template.DisplayText)
-	require.Equal(t, defaultTemplateBootMode, a.template.BootMode)
-	require.Equal(t, testAccTemplateUsername, a.template.Details["username"])
+	require.Equal(t, testAccTemplateName, *a.template.Name)
+	require.Equal(t, testAccTemplateDescription, *a.template.Description)
+	require.Equal(t, defaultTemplateBootMode, *a.template.BootMode)
+	require.Equal(t, testAccTemplateUsername, *a.template.DefaultUser)
 
 	require.NoError(t, artifact.Destroy())
 }

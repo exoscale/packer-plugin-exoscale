@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/exoscale/egoscale"
+	egoscale "github.com/exoscale/egoscale/v2"
+	exoapi "github.com/exoscale/egoscale/v2/api"
+	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
 const BuilderId = "packer.post-processor.exoscale-import"
 
 type Artifact struct {
-	template egoscale.Template
-	exo      *egoscale.Client
+	state    *multistep.BasicStateBag
+	template *egoscale.Template
 }
 
 func (a *Artifact) BuilderId() string {
@@ -19,7 +21,7 @@ func (a *Artifact) BuilderId() string {
 }
 
 func (a *Artifact) Id() string {
-	return a.template.ID.String()
+	return *a.template.ID
 }
 
 func (a *Artifact) Files() []string {
@@ -27,21 +29,25 @@ func (a *Artifact) Files() []string {
 }
 
 func (a *Artifact) String() string {
+	config := a.state.Get("config").(*Config)
+
 	return fmt.Sprintf("%s @ %s (%s)",
-		a.template.Name,
-		a.template.ZoneName,
-		a.template.ID.String())
+		*a.template.Name,
+		config.TemplateZone,
+		*a.template.ID)
 }
 
-func (a *Artifact) State(name string) interface{} {
+func (a *Artifact) State(_ string) interface{} {
 	return nil
 }
 
 func (a *Artifact) Destroy() error {
-	_, err := a.exo.RequestWithContext(context.Background(), &egoscale.DeleteTemplate{ID: a.template.ID})
-	if err != nil {
-		return fmt.Errorf("unable to delete template: %s", err)
-	}
+	exo := a.state.Get("exo").(*egoscale.Client)
+	config := a.state.Get("config").(*Config)
 
-	return nil
+	ctx := exoapi.WithEndpoint(
+		context.Background(),
+		exoapi.NewReqEndpoint(config.APIEnvironment, config.TemplateZone))
+
+	return exo.DeleteTemplate(ctx, config.TemplateZone, a.template)
 }

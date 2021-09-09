@@ -30,11 +30,11 @@ func TestNewConfig(t *testing.T) {
 	}}...)
 	require.NoError(t, err)
 	require.NotNil(t, config)
-	require.Equal(t, defaultAPIEndpoint, config.APIEndpoint)
+	require.Equal(t, defaultAPIEnvironment, config.APIEnvironment)
 	require.Equal(t, defaultInstanceType, config.InstanceType)
 	require.Equal(t, defaultInstanceDiskSize, config.InstanceDiskSize)
 	require.Equal(t, []string{defaultInstanceSecurityGroup}, config.InstanceSecurityGroups)
-	require.Equal(t, defaultInstanceTemplateFilter, config.InstanceTemplateFilter)
+	require.Equal(t, defaultInstanceTemplateVisibility, config.InstanceTemplateVisibility)
 	require.Equal(t, config.InstanceZone, testConfigTemplateZone)
 	require.Equal(t, defaultTemplateBootMode, config.TemplateBootMode)
 }

@@ -27,9 +27,6 @@ built locally by the [`qemu`][packer-doc-builder-qemu] builder.
 
 ### Optional
 
-- `api_endpoint` (string) - The API endpoint used to communicate with the
-  Exoscale API. Defaults to `https://api.exoscale.com/v1`.
-
 - `sos_endpoint` (string) - The endpoint used to communicate with SOS.
   Defaults to `https://sos-<template_zone>.exo.io`.
 

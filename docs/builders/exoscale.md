@@ -18,8 +18,8 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
 - `api_secret` (string) - The API secret used to communicate with Exoscale
   services.
 
-- `instance_template` (string) - The name of the template to use when creating
-  the Compute instance.
+- `instance_template` (string) - The name or ID of the template to use when
+  creating the Compute instance.
 
 - `template_zone` (string) - The Exoscale [zone][zones] in which to create the
   template.
@@ -28,9 +28,6 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
 
 
 ### Optional
-
-- `api_endpoint` (string) - The API endpoint used to communicate with the
-  Exoscale API. Defaults to `https://api.exoscale.com/v1`.
 
 - `instance_type` (string) - The instance type of the Compute instance.
   Defaults to `Medium`.
@@ -41,8 +38,8 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
 - `instance_zone` (string) - The Exoscale zone in which to create the Compute
   instance. Defaults to the value of `template_zone`.
 
-- `instance_template_filter` (string) - The template filter to specify for the
-  `instance_template` parameter. Defaults to `featured`.
+- `instance_template_visibility` (string) - The template visibility to specify
+  for the `instance_template` parameter. Defaults to `public`.
 
 - `instance_disk_size` (int) - Volume disk size in GB of the Compute instance
   to create. Defaults to `50`.

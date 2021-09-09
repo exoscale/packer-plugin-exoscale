@@ -3,9 +3,9 @@ package exoscale
 import (
 	"context"
 	"fmt"
-	"time"
 
-	"github.com/exoscale/egoscale"
+	egoscale "github.com/exoscale/egoscale/v2"
+	exoapi "github.com/exoscale/egoscale/v2/api"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 )
@@ -16,9 +16,9 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 	var (
 		buildID = state.Get("build-id").(string)
 		exo     = state.Get("exo").(*egoscale.Client)
-		ui      = state.Get("ui").(packer.Ui)
 		config  = state.Get("config").(*Config)
-		zone    = state.Get("zone").(*egoscale.Zone)
+		zone    = state.Get("zone").(string)
+		ui      = state.Get("ui").(packer.Ui)
 	)
 
 	ui.Say("Creating Compute instance")
@@ -28,78 +28,104 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 		instanceName = "packer-" + buildID
 	}
 
-	resp, err := exo.GetWithContext(ctx, &egoscale.ListServiceOfferings{Name: config.InstanceType})
+	instanceType, err := exo.FindInstanceType(ctx, config.TemplateZone, config.InstanceType)
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to list Compute instance types: %s", err))
-		return multistep.ActionHalt
-	}
-	instanceType := resp.(*egoscale.ServiceOffering)
-
-	listTemplatesResp, err := exo.ListWithContext(ctx, &egoscale.ListTemplates{
-		Name:           config.InstanceTemplate,
-		TemplateFilter: config.InstanceTemplateFilter,
-		ZoneID:         zone.ID,
-	})
-	if err != nil {
-		ui.Error(fmt.Sprintf("unable to list Compute instance templates: %s", err))
-		return multistep.ActionHalt
-	}
-	if len(listTemplatesResp) == 0 {
-		ui.Error(fmt.Sprintf("template %q not found", config.InstanceTemplate))
+		ui.Error(fmt.Sprintf("unable to retrieve Compute instance type: %v", err))
 		return multistep.ActionHalt
 	}
 
-	// In case multiple results are returned, we pick the most recent item from the list.
-	var (
-		instanceTemplate *egoscale.Template
-		templateDate     time.Time
-	)
-	for _, t := range listTemplatesResp {
-		ts, err := time.Parse("2006-01-02T15:04:05-0700", t.(*egoscale.Template).Created)
+	// Opportunistic shortcut in case the template is referenced by ID.
+	template, _ := exo.GetTemplate(ctx, zone, config.InstanceTemplate)
+
+	if template == nil {
+		templates, err := exo.ListTemplates(ctx, zone, config.InstanceTemplateVisibility, "")
 		if err != nil {
-			ui.Error(fmt.Sprintf("template creation date parsing error: %s", err))
-			// 	return multistep.ActionHalt
+			ui.Error(fmt.Sprintf("unable to list Compute instance templates: %v", err))
+			return multistep.ActionHalt
+		}
+		for _, template = range templates {
+			if *template.ID == config.InstanceTemplate || *template.Name == config.InstanceTemplate {
+				break
+			}
+		}
+		if template == nil {
+			ui.Error(fmt.Sprintf(
+				"no template %q found with visibility %s in zone %s",
+				config.InstanceTemplate,
+				config.InstanceTemplateVisibility,
+				zone,
+			))
+			return multistep.ActionHalt
 		}
 
-		if ts.After(templateDate) {
-			templateDate = ts
-			instanceTemplate = t.(*egoscale.Template)
+		template, err = exo.GetTemplate(ctx, zone, *template.ID)
+		if err != nil {
+			ui.Error(fmt.Sprintf("unable to retrieve template: %v", err))
+			return multistep.ActionHalt
 		}
 	}
 
-	// If not set at this point, attempt to retrieve the template's username to set the SSH communicator's username.
-	if config.Comm.SSHUsername == "" {
-		if username, ok := instanceTemplate.Details["username"]; ok {
-			config.Comm.SSHUsername = username
-		}
+	// If not set at this point, attempt to retrieve the template's default
+	// user to set the SSH communicator's username.
+	if config.Comm.SSHUsername == "" && template.DefaultUser != nil {
+		config.Comm.SSHUsername = *template.DefaultUser
 	}
 
-	privateNetworks, err := instancePrivateNetworkIDs(ctx, state)
+	instance := &egoscale.Instance{
+		DiskSize:       &config.InstanceDiskSize,
+		InstanceTypeID: instanceType.ID,
+		Name:           &instanceName,
+		SSHKey:         &config.InstanceSSHKey,
+		TemplateID:     template.ID,
+	}
+
+	securityGroupIDs, err := func() ([]string, error) {
+		ids := make([]string, len(config.InstanceSecurityGroups))
+		for i, p := range config.InstanceSecurityGroups {
+			securityGroup, err := exo.FindSecurityGroup(ctx, zone, p)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %v", p, err)
+			}
+			ids[i] = *securityGroup.ID
+		}
+		return ids, nil
+	}()
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to retrieve Private Networks: %s", err))
+		ui.Error(fmt.Sprintf("unable to retrieve Security Groups: %v", err))
+		return multistep.ActionHalt
+	}
+	if len(securityGroupIDs) > 0 {
+		instance.SecurityGroupIDs = &securityGroupIDs
+	}
+
+	instance, err = exo.CreateInstance(ctx, zone, instance)
+	if err != nil {
+		ui.Error(fmt.Sprintf("unable to create Compute instance: %v", err))
 		return multistep.ActionHalt
 	}
 
-	resp, err = exo.RequestWithContext(ctx, &egoscale.DeployVirtualMachine{
-		Name:               instanceName,
-		ServiceOfferingID:  instanceType.ID,
-		TemplateID:         instanceTemplate.ID,
-		RootDiskSize:       config.InstanceDiskSize,
-		KeyPair:            config.InstanceSSHKey,
-		SecurityGroupNames: config.InstanceSecurityGroups,
-		NetworkIDs:         privateNetworks,
-		ZoneID:             zone.ID,
-	})
+	for _, p := range config.InstancePrivateNetworks {
+		privateNetwork, err := exo.FindPrivateNetwork(ctx, zone, p)
+		if err != nil {
+			ui.Error(fmt.Sprintf("unable to retrieve Private Network %q: %v", p, err))
+			return multistep.ActionHalt
+		}
+
+		if err = exo.AttachInstanceToPrivateNetwork(ctx, zone, instance, privateNetwork, nil); err != nil {
+			ui.Error(fmt.Sprintf("unable to attach instance to Private Network %q: %v", p, err))
+			return multistep.ActionHalt
+		}
+	}
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to create Compute instance: %s", err))
+		ui.Error(fmt.Sprintf("unable to retrieve Private Networks: %v", err))
 		return multistep.ActionHalt
 	}
-	instance := resp.(*egoscale.VirtualMachine)
+
 	state.Put("instance", instance)
-	state.Put("instance_ip_address", instance.IP().String())
+	state.Put("instance_ip_address", instance.PublicIPAddress.String())
 
 	if config.PackerDebug {
-		ui.Message(fmt.Sprintf("Compute instance started (ID: %s)", instance.ID.String()))
+		ui.Message(fmt.Sprintf("Compute instance started (ID: %s)", *instance.ID))
 	}
 
 	return multistep.ActionContinue
@@ -107,46 +133,23 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 
 func (s *stepCreateInstance) Cleanup(state multistep.StateBag) {
 	var (
-		exo = state.Get("exo").(*egoscale.Client)
-		ui  = state.Get("ui").(packer.Ui)
+		exo    = state.Get("exo").(*egoscale.Client)
+		config = state.Get("config").(*Config)
+		zone   = state.Get("zone").(string)
+		ui     = state.Get("ui").(packer.Ui)
 	)
 
 	if v, ok := state.GetOk("instance"); ok {
 		ui.Say("Cleanup: destroying Compute instance")
 
-		instance := v.(*egoscale.VirtualMachine)
+		ctx := exoapi.WithEndpoint(
+			context.Background(),
+			exoapi.NewReqEndpoint(config.APIEnvironment, config.TemplateZone))
 
-		_, err := exo.Request(&egoscale.DestroyVirtualMachine{ID: instance.ID})
-		if err != nil {
-			ui.Error(fmt.Sprintf("unable to destroy Compute instance: %s", err))
+		instance := v.(*egoscale.Instance)
+
+		if err := exo.DeleteInstance(ctx, zone, instance); err != nil {
+			ui.Error(fmt.Sprintf("unable to delete Compute instance: %v", err))
 		}
 	}
-}
-
-func instancePrivateNetworkIDs(ctx context.Context, state multistep.StateBag) ([]egoscale.UUID, error) {
-	var (
-		exo    = state.Get("exo").(*egoscale.Client)
-		config = state.Get("config").(*Config)
-		zone   = state.Get("zone").(*egoscale.Zone)
-		ids    []egoscale.UUID
-	)
-
-	resp, err := exo.RequestWithContext(ctx, &egoscale.ListNetworks{ZoneID: zone.ID})
-	if err != nil {
-		return nil, err
-	}
-
-next:
-	for _, userNetwork := range config.InstancePrivateNetworks {
-		for _, network := range resp.(*egoscale.ListNetworksResponse).Network {
-			if network.Name == userNetwork {
-				ids = append(ids, *network.ID)
-				continue next
-			}
-		}
-
-		return nil, fmt.Errorf("%q: not found", userNetwork)
-	}
-
-	return ids, nil
 }

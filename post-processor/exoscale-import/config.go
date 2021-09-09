@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	defaultAPIEndpoint      = "https://api.exoscale.com/v1"
+	defaultAPIEnvironment   = "api"
 	defaultTemplateBootMode = "legacy"
 )
 
 type Config struct {
 	SOSEndpoint             string `mapstructure:"sos_endpoint"`
-	APIEndpoint             string `mapstructure:"api_endpoint"`
+	APIEnvironment          string `mapstructure:"api_environment"`
 	APIKey                  string `mapstructure:"api_key"`
 	APISecret               string `mapstructure:"api_secret"`
 	ImageBucket             string `mapstructure:"image_bucket"`
@@ -72,8 +72,8 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		return nil, errs
 	}
 
-	if config.APIEndpoint == "" {
-		config.APIEndpoint = defaultAPIEndpoint
+	if config.APIEnvironment == "" {
+		config.APIEnvironment = defaultAPIEnvironment
 	}
 
 	if config.TemplateBootMode == "" {
