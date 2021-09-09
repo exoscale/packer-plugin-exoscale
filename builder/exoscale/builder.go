@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/exoscale/egoscale"
+	egoscale "github.com/exoscale/egoscale/v2"
+	exoapi "github.com/exoscale/egoscale/v2/api"
 	"github.com/hashicorp/packer-plugin-sdk/communicator"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/multistep/commonsteps"
@@ -43,14 +44,16 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 	b.buildID = xid.New().String()
 	ui.Say(fmt.Sprintf("Build ID: %s", b.buildID))
 
-	b.exo = egoscale.NewClient(b.config.APIEndpoint, b.config.APIKey, b.config.APISecret)
-	b.exo.Timeout = 5 * time.Minute
-
-	resp, err := b.exo.GetWithContext(ctx, &egoscale.ListZones{Name: b.config.InstanceZone})
+	exo, err := egoscale.NewClient(
+		b.config.APIKey,
+		b.config.APISecret,
+		egoscale.ClientOptWithTimeout(5*time.Minute),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to list zones: %s", err)
+		return nil, fmt.Errorf("unable to initialize Exoscale client: %v", err)
 	}
-	zone := resp.(*egoscale.Zone)
+
+	b.exo = exo
 
 	state := new(multistep.BasicStateBag)
 	state.Put("build-id", b.buildID)
@@ -58,7 +61,7 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 	state.Put("exo", b.exo)
 	state.Put("hook", hook)
 	state.Put("ui", ui)
-	state.Put("zone", zone)
+	state.Put("zone", b.config.TemplateZone)
 
 	steps := []multistep.Step{
 		new(stepCreateSSHKey),
@@ -80,6 +83,8 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 		new(stepExportSnapshot),
 		new(stepRegisterTemplate),
 	}
+
+	ctx = exoapi.WithEndpoint(ctx, exoapi.NewReqEndpoint(b.config.APIEnvironment, b.config.TemplateZone))
 
 	b.runner = commonsteps.NewRunnerWithPauseFn(steps, b.config.PackerConfig, ui, state)
 	b.runner.Run(ctx, state)
@@ -103,7 +108,8 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 
 	return &Artifact{
 		StateData: map[string]interface{}{"generated_data": state.Get("generated_data")},
-		template:  v.(egoscale.Template),
-		exo:       b.exo,
+
+		state:    state,
+		template: v.(*egoscale.Template),
 	}, nil
 }

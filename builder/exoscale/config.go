@@ -15,34 +15,34 @@ import (
 )
 
 const (
-	defaultAPIEndpoint                  = "https://api.exoscale.com/v1"
-	defaultInstanceType                 = "Medium"
-	defaultInstanceDiskSize       int64 = 50
-	defaultInstanceSecurityGroup        = "default"
-	defaultInstanceTemplateFilter       = "featured"
-	defaultTemplateBootMode             = "legacy"
+	defaultAPIEnvironment                   = "api"
+	defaultInstanceType                     = "Medium"
+	defaultInstanceDiskSize           int64 = 50
+	defaultInstanceSecurityGroup            = "default"
+	defaultInstanceTemplateVisibility       = "public"
+	defaultTemplateBootMode                 = "legacy"
 )
 
 type Config struct {
-	APIEndpoint             string   `mapstructure:"api_endpoint"`
-	APIKey                  string   `mapstructure:"api_key"`
-	APISecret               string   `mapstructure:"api_secret"`
-	InstanceName            string   `mapstructure:"instance_name"`
-	InstanceZone            string   `mapstructure:"instance_zone"`
-	InstanceTemplate        string   `mapstructure:"instance_template"`
-	InstanceTemplateFilter  string   `mapstructure:"instance_template_filter"`
-	InstanceType            string   `mapstructure:"instance_type"`
-	InstanceDiskSize        int64    `mapstructure:"instance_disk_size"`
-	InstanceSecurityGroups  []string `mapstructure:"instance_security_groups"`
-	InstancePrivateNetworks []string `mapstructure:"instance_private_networks"`
-	InstanceSSHKey          string   `mapstructure:"instance_ssh_key"`
-	TemplateZone            string   `mapstructure:"template_zone"`
-	TemplateName            string   `mapstructure:"template_name"`
-	TemplateDescription     string   `mapstructure:"template_description"`
-	TemplateUsername        string   `mapstructure:"template_username"`
-	TemplateBootMode        string   `mapstructure:"template_boot_mode"`
-	TemplateDisablePassword bool     `mapstructure:"template_disable_password"`
-	TemplateDisableSSHKey   bool     `mapstructure:"template_disable_sshkey"`
+	APIEnvironment             string   `mapstructure:"api_environment"`
+	APIKey                     string   `mapstructure:"api_key"`
+	APISecret                  string   `mapstructure:"api_secret"`
+	InstanceName               string   `mapstructure:"instance_name"`
+	InstanceZone               string   `mapstructure:"instance_zone"`
+	InstanceTemplate           string   `mapstructure:"instance_template"`
+	InstanceTemplateVisibility string   `mapstructure:"instance_template_visibility"`
+	InstanceType               string   `mapstructure:"instance_type"`
+	InstanceDiskSize           int64    `mapstructure:"instance_disk_size"`
+	InstanceSecurityGroups     []string `mapstructure:"instance_security_groups"`
+	InstancePrivateNetworks    []string `mapstructure:"instance_private_networks"`
+	InstanceSSHKey             string   `mapstructure:"instance_ssh_key"`
+	TemplateZone               string   `mapstructure:"template_zone"`
+	TemplateName               string   `mapstructure:"template_name"`
+	TemplateDescription        string   `mapstructure:"template_description"`
+	TemplateUsername           string   `mapstructure:"template_username"`
+	TemplateBootMode           string   `mapstructure:"template_boot_mode"`
+	TemplateDisablePassword    bool     `mapstructure:"template_disable_password"`
+	TemplateDisableSSHKey      bool     `mapstructure:"template_disable_sshkey"`
 
 	ctx interpolate.Context
 
@@ -98,16 +98,16 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		config.TemplateBootMode = defaultTemplateBootMode
 	}
 
-	if config.APIEndpoint == "" {
-		config.APIEndpoint = defaultAPIEndpoint
+	if config.APIEnvironment == "" {
+		config.APIEnvironment = defaultAPIEnvironment
 	}
 
 	if config.InstanceType == "" {
 		config.InstanceType = defaultInstanceType
 	}
 
-	if config.InstanceTemplateFilter == "" {
-		config.InstanceTemplateFilter = defaultInstanceTemplateFilter
+	if config.InstanceTemplateVisibility == "" {
+		config.InstanceTemplateVisibility = defaultInstanceTemplateVisibility
 	}
 
 	if config.InstanceDiskSize == 0 {

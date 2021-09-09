@@ -42,4 +42,4 @@ func (s *stepDeleteImage) Run(ctx context.Context, state multistep.StateBag) mul
 	return multistep.ActionContinue
 }
 
-func (s *stepDeleteImage) Cleanup(state multistep.StateBag) {}
+func (s *stepDeleteImage) Cleanup(_ multistep.StateBag) {}

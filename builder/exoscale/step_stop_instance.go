@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/exoscale/egoscale"
+	egoscale "github.com/exoscale/egoscale/v2"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 )
@@ -14,15 +14,15 @@ type stepStopInstance struct{}
 func (s *stepStopInstance) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	var (
 		exo      = state.Get("exo").(*egoscale.Client)
+		instance = state.Get("instance").(*egoscale.Instance)
+		zone     = state.Get("zone").(string)
 		ui       = state.Get("ui").(packer.Ui)
-		instance = state.Get("instance").(*egoscale.VirtualMachine)
 	)
 
 	ui.Say("Stopping Compute instance")
 
-	_, err := exo.RequestWithContext(ctx, &egoscale.StopVirtualMachine{ID: instance.ID})
-	if err != nil {
-		ui.Error(fmt.Sprintf("unable to stop instance: %s", err))
+	if err := exo.StopInstance(ctx, zone, instance); err != nil {
+		ui.Error(fmt.Sprintf("unable to stop instance: %v", err))
 		return multistep.ActionHalt
 	}
 

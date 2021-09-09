@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/exoscale/egoscale"
+	egoscale "github.com/exoscale/egoscale/v2"
+	exoapi "github.com/exoscale/egoscale/v2/api"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/multistep/commonsteps"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
@@ -56,7 +58,18 @@ func (p *PostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.
 		return nil, false, false, err
 	}
 
-	p.exo = egoscale.NewClient(p.config.APIEndpoint, p.config.APIKey, p.config.APISecret)
+	exo, err := egoscale.NewClient(
+		p.config.APIKey,
+		p.config.APISecret,
+
+		// Template registration can take a _long time_, raising
+		// the Exoscale API client timeout as a precaution.
+		egoscale.ClientOptWithTimeout(30*time.Minute),
+	)
+	if err != nil {
+		return nil, false, false, fmt.Errorf("unable to initialize Exoscale client: %v", err)
+	}
+	p.exo = exo
 
 	cfg, err := awsconfig.LoadDefaultConfig(
 		ctx,
@@ -76,7 +89,7 @@ func (p *PostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.
 			"")),
 	)
 	if err != nil {
-		return nil, false, false, fmt.Errorf("unable to initialize SOS client: %s", err)
+		return nil, false, false, fmt.Errorf("unable to initialize SOS client: %v", err)
 	}
 
 	p.sos = s3.NewFromConfig(cfg, func(o *s3.Options) {
@@ -95,6 +108,8 @@ func (p *PostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.
 		new(stepRegisterTemplate),
 		new(stepDeleteImage),
 	}
+
+	ctx = exoapi.WithEndpoint(ctx, exoapi.NewReqEndpoint(p.config.APIEnvironment, p.config.TemplateZone))
 
 	p.runner = commonsteps.NewRunnerWithPauseFn(steps, p.config.PackerConfig, ui, state)
 	p.runner.Run(ctx, state)
@@ -117,7 +132,7 @@ func (p *PostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.
 	}
 
 	return &Artifact{
-		template: v.(egoscale.Template),
-		exo:      p.exo,
+		state:    state,
+		template: v.(*egoscale.Template),
 	}, false, false, nil
 }

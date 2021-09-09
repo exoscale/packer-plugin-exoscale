@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/exoscale/egoscale"
+	egoscale "github.com/exoscale/egoscale/v2"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 )
@@ -25,38 +25,24 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 
 	ui.Say("Registering Compute instance template")
 
-	resp, err := exo.GetWithContext(ctx, &egoscale.ListZones{Name: config.TemplateZone})
-	if err != nil {
-		ui.Error(fmt.Sprintf("unable to list zones: %s", err))
-		return multistep.ActionHalt
-	}
-	zone := resp.(*egoscale.Zone)
-
-	resp, err = exo.RequestWithContext(ctx, &egoscale.RegisterCustomTemplate{
-		Name:            config.TemplateName,
-		Displaytext:     config.TemplateDescription,
-		BootMode:        config.TemplateBootMode,
-		URL:             imageURL,
-		Checksum:        imageChecksum,
+	template, err := exo.RegisterTemplate(ctx, config.TemplateZone, &egoscale.Template{
+		BootMode:        &config.TemplateBootMode,
+		Checksum:        &imageChecksum,
+		DefaultUser:     &config.TemplateUsername,
+		Description:     &config.TemplateDescription,
+		Name:            &config.TemplateName,
 		PasswordEnabled: &passwordEnabled,
 		SSHKeyEnabled:   &sshkeyEnabled,
-		Details: func() map[string]string {
-			if config.TemplateUsername != "" {
-				return map[string]string{"username": config.TemplateUsername}
-			}
-			return nil
-		}(),
-		ZoneID: zone.ID,
+		URL:             &imageURL,
 	})
 	if err != nil {
 		ui.Error(fmt.Sprintf("unable to export Compute instance snapshot: %s", err))
 		return multistep.ActionHalt
 	}
-	templates := resp.(*[]egoscale.Template)
 
-	state.Put("template", (*templates)[0])
+	state.Put("template", template)
 
 	return multistep.ActionContinue
 }
 
-func (s *stepRegisterTemplate) Cleanup(state multistep.StateBag) {}
+func (s *stepRegisterTemplate) Cleanup(_ multistep.StateBag) {}

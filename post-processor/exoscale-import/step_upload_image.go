@@ -79,4 +79,4 @@ func (s *stepUploadImage) Run(ctx context.Context, state multistep.StateBag) mul
 	return multistep.ActionContinue
 }
 
-func (s *stepUploadImage) Cleanup(state multistep.StateBag) {}
+func (s *stepUploadImage) Cleanup(_ multistep.StateBag) {}
