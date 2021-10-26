@@ -32,7 +32,6 @@ signs:
     artifacts: all
 
 release:
-   draft: true
    github:
      owner: exoscale
      name: packer-plugin-exoscale
