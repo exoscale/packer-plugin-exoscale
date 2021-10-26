@@ -2,10 +2,8 @@ package exoscale
 
 import (
 	"context"
+	"crypto/ed25519"
 	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,9 +11,9 @@ import (
 
 	egoscale "github.com/exoscale/egoscale/v2"
 	exoapi "github.com/exoscale/egoscale/v2/api"
+	"github.com/hashicorp/packer-plugin-sdk/communicator/sshkey"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
-	"golang.org/x/crypto/ssh"
 )
 
 type stepCreateSSHKey struct{}
@@ -41,19 +39,15 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 
 	config.InstanceSSHKey = "packer-" + buildID
 
-	sshPrivateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
-		ui.Error(fmt.Sprintf("error generating SSH private key: %v", err))
-		return multistep.ActionHalt
-	}
-	if err = sshPrivateKey.Validate(); err != nil {
 		ui.Error(fmt.Sprintf("error generating SSH private key: %v", err))
 		return multistep.ActionHalt
 	}
 
-	sshPublicKey, err := ssh.NewPublicKey(&sshPrivateKey.PublicKey)
+	pair, err := sshkey.PairFromED25519(publicKey, privateKey)
 	if err != nil {
-		ui.Error(fmt.Sprintf("error generating SSH public key: %v", err))
+		ui.Error(fmt.Sprintf("error creating temporary ssh key: %s", err))
 		return multistep.ActionHalt
 	}
 
@@ -61,17 +55,14 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 		ctx,
 		zone,
 		config.InstanceSSHKey,
-		string(ssh.MarshalAuthorizedKey(sshPublicKey)),
+		string(pair.Public),
 	)
 	if err != nil {
 		ui.Error(fmt.Sprintf("unable to register SSH key: %v", err))
 		return multistep.ActionHalt
 	}
 
-	config.Comm.SSHPrivateKey = pem.EncodeToMemory(&pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(sshPrivateKey),
-	})
+	config.Comm.SSHPrivateKey = pair.Private
 
 	state.Put("delete_ssh_key", true) // Flag the key for deletion once the build is successfully completed.
 
