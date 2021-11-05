@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/packer-plugin-sdk/acctest"
@@ -12,11 +13,13 @@ import (
 )
 
 var (
-	testAccImageBucket         = "eat-template-images"
-	testAccTemplateName        = "test-packer-builder-exoscale"
-	testAccTemplateZone        = "ch-dk-2"
-	testAccTemplateDescription = "Built with Packer"
-	testAccTemplateUsername    = "packer"
+	// /!\/!\/!\ The SOS bucket used in the acceptance tests is located in CH-DK-2 /!\/!\/!\
+	testAccImageBucket  = "eat-template-images"
+	testAccTemplateZone = "ch-dk-2"
+
+	testAccTemplateName        = "packer-plugin-test-" + new(testSuite).randomString(6)
+	testAccTemplateDescription = new(testSuite).randomString(10)
+	testAccTemplateUsername    = strings.ToLower(new(testSuite).randomString(10))
 	testAccImageFile           = "./testdata/test-packer-post-processor-exoscale-import.qcow2"
 )
 

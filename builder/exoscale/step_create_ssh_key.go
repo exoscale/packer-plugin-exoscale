@@ -16,20 +16,16 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-type stepCreateSSHKey struct{}
+type stepCreateSSHKey struct {
+	builder *Builder
+}
 
 func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
-	var (
-		buildID = state.Get("build-id").(string)
-		exo     = state.Get("exo").(*egoscale.Client)
-		config  = state.Get("config").(*Config)
-		zone    = state.Get("zone").(string)
-		ui      = state.Get("ui").(packer.Ui)
-	)
+	ui := state.Get("ui").(packer.Ui)
 
 	// If an instance SSH key is specified, we assume it already exists and that the SSH communicator is
 	// configured accordingly.
-	if config.InstanceSSHKey != "" {
+	if s.builder.config.InstanceSSHKey != "" {
 		return multistep.ActionContinue
 	}
 
@@ -37,7 +33,7 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 
 	ui.Say("Creating SSH key")
 
-	config.InstanceSSHKey = "packer-" + buildID
+	s.builder.config.InstanceSSHKey = "packer-" + s.builder.buildID
 
 	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
@@ -51,10 +47,10 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 		return multistep.ActionHalt
 	}
 
-	_, err = exo.RegisterSSHKey(
+	_, err = s.builder.exo.RegisterSSHKey(
 		ctx,
-		zone,
-		config.InstanceSSHKey,
+		s.builder.config.TemplateZone,
+		s.builder.config.InstanceSSHKey,
 		string(pair.Public),
 	)
 	if err != nil {
@@ -62,14 +58,14 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 		return multistep.ActionHalt
 	}
 
-	config.Comm.SSHPrivateKey = pair.Private
+	s.builder.config.Comm.SSHPrivateKey = pair.Private
 
 	state.Put("delete_ssh_key", true) // Flag the key for deletion once the build is successfully completed.
 
-	if config.PackerDebug {
-		sshPrivateKeyFile := config.InstanceSSHKey
+	if s.builder.config.PackerDebug {
+		sshPrivateKeyFile := s.builder.config.InstanceSSHKey
 
-		if err := ioutil.WriteFile(sshPrivateKeyFile, config.Comm.SSHPrivateKey, 0o600); err != nil {
+		if err := ioutil.WriteFile(sshPrivateKeyFile, s.builder.config.Comm.SSHPrivateKey, 0o600); err != nil {
 			ui.Error(fmt.Sprintf("unable to write SSH private key to file: %v", err))
 			return multistep.ActionHalt
 		}
@@ -87,27 +83,26 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 }
 
 func (s *stepCreateSSHKey) Cleanup(state multistep.StateBag) {
-	var (
-		exo    = state.Get("exo").(*egoscale.Client)
-		config = state.Get("config").(*Config)
-		zone   = state.Get("zone").(string)
-		ui     = state.Get("ui").(packer.Ui)
-	)
+	ui := state.Get("ui").(packer.Ui)
 
 	if state.Get("delete_ssh_key").(bool) {
 		ui.Say("Cleanup: deleting SSH key")
 
 		ctx := exoapi.WithEndpoint(
 			context.Background(),
-			exoapi.NewReqEndpoint(config.APIEnvironment, config.TemplateZone),
+			exoapi.NewReqEndpoint(s.builder.config.APIEnvironment, s.builder.config.TemplateZone),
 		)
 
-		if err := exo.DeleteSSHKey(ctx, zone, &egoscale.SSHKey{Name: &config.InstanceSSHKey}); err != nil {
+		if err := s.builder.exo.DeleteSSHKey(
+			ctx,
+			s.builder.config.TemplateZone,
+			&egoscale.SSHKey{Name: &s.builder.config.InstanceSSHKey},
+		); err != nil {
 			ui.Error(fmt.Sprintf("unable to delete SSH key: %v", err))
 			return
 		}
 
-		if config.PackerDebug {
+		if s.builder.config.PackerDebug {
 			if sshPrivateKeyFile := state.Get("delete_ssh_private_key").(string); sshPrivateKeyFile != "" {
 				if err := os.Remove(sshPrivateKeyFile); err != nil {
 					ui.Error(fmt.Sprintf("unable to delete SSH key file: %v", err))

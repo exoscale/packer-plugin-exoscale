@@ -9,19 +9,19 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-type stepStopInstance struct{}
+type stepStopInstance struct {
+	builder *Builder
+}
 
 func (s *stepStopInstance) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	var (
-		exo      = state.Get("exo").(*egoscale.Client)
 		instance = state.Get("instance").(*egoscale.Instance)
-		zone     = state.Get("zone").(string)
 		ui       = state.Get("ui").(packer.Ui)
 	)
 
 	ui.Say("Stopping Compute instance")
 
-	if err := exo.StopInstance(ctx, zone, instance); err != nil {
+	if err := s.builder.exo.StopInstance(ctx, s.builder.config.TemplateZone, instance); err != nil {
 		ui.Error(fmt.Sprintf("unable to stop instance: %v", err))
 		return multistep.ActionHalt
 	}

@@ -171,7 +171,7 @@ github.com/deepmap/oapi-codegen/pkg/runtime
 github.com/deepmap/oapi-codegen/pkg/types
 # github.com/dylanmei/iso8601 v0.1.0
 github.com/dylanmei/iso8601
-# github.com/exoscale/egoscale v0.72.2
+# github.com/exoscale/egoscale v0.80.2
 ## explicit
 github.com/exoscale/egoscale/v2
 github.com/exoscale/egoscale/v2/api
@@ -182,6 +182,7 @@ github.com/fatih/color
 # github.com/gofrs/flock v0.8.1
 github.com/gofrs/flock
 # github.com/gofrs/uuid v4.0.0+incompatible
+## explicit
 github.com/gofrs/uuid
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 github.com/golang/groupcache/lru
@@ -254,7 +255,6 @@ github.com/hashicorp/hcl/v2/hcldec
 # github.com/hashicorp/packer-plugin-sdk v0.2.5
 ## explicit
 github.com/hashicorp/packer-plugin-sdk/acctest
-github.com/hashicorp/packer-plugin-sdk/acctest/testutils
 github.com/hashicorp/packer-plugin-sdk/common
 github.com/hashicorp/packer-plugin-sdk/communicator
 github.com/hashicorp/packer-plugin-sdk/communicator/ssh
@@ -354,6 +354,7 @@ github.com/stretchr/objx
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
+github.com/stretchr/testify/suite
 # github.com/ugorji/go/codec v1.2.6
 github.com/ugorji/go/codec
 # github.com/ulikunitz/xz v0.5.10
@@ -388,7 +389,6 @@ go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
 # golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
-## explicit
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519

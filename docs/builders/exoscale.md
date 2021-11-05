@@ -81,14 +81,14 @@ variable "api_key" { default = "" }
 variable "api_secret" { default = "" }
 
 source "exoscale" "my-app" {
-  api_key = var.api_key
-  api_secret = var.api_secret
-  instance_template = "Linux Ubuntu 20.04 LTS 64-bit"
+  api_key                  = var.api_key
+  api_secret               = var.api_secret
+  instance_template        = "Linux Ubuntu 20.04 LTS 64-bit"
   instance_security_groups = ["packer"]
-  template_zone = "ch-gva-2"
-  template_name = "my-app"
-  template_username = "ubuntu"
-  ssh_username = "ubuntu"
+  template_zone            = "ch-gva-2"
+  template_name            = "my-app"
+  template_username        = "ubuntu"
+  ssh_username             = "ubuntu"
 }
 
 build {
@@ -96,7 +96,7 @@ build {
 
   provisioner "shell" {
     execute_command = "chmod +x {{.Path}}; sudo {{.Path}}"
-    scripts = ["install.sh"]
+    scripts         = ["install.sh"]
   }
 }
 ```

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	s3manager "github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	egoscale "github.com/exoscale/egoscale/v2"
 	exoapi "github.com/exoscale/egoscale/v2/api"
@@ -29,11 +30,23 @@ func init() {
 		version.SDKVersion.FormattedVersion(), egoscale.UserAgent)
 }
 
+type exoscaleClient interface {
+	CopyTemplate(context.Context, string, *egoscale.Template, string) (*egoscale.Template, error)
+	DeleteTemplate(context.Context, string, *egoscale.Template) error
+	RegisterTemplate(context.Context, string, *egoscale.Template) (*egoscale.Template, error)
+}
+
+type s3Client interface {
+	s3manager.UploadAPIClient
+
+	DeleteObject(context.Context, *s3.DeleteObjectInput, ...func(*s3.Options)) (*s3.DeleteObjectOutput, error)
+}
+
 type PostProcessor struct {
 	config *Config
 	runner multistep.Runner
-	exo    *egoscale.Client
-	sos    *s3.Client
+	exo    exoscaleClient
+	sos    s3Client
 }
 
 func (p *PostProcessor) Configure(raws ...interface{}) error {
@@ -48,12 +61,16 @@ func (p *PostProcessor) Configure(raws ...interface{}) error {
 	return nil
 }
 
-func (p *PostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.Artifact) (packer.Artifact, bool, bool, error) {
+func (p *PostProcessor) PostProcess(
+	ctx context.Context,
+	ui packer.Ui,
+	a packer.Artifact,
+) (packer.Artifact, bool, bool, error) {
 	switch a.BuilderId() {
 	case qemuBuilderID, fileBuilderID, artificeBuilderID:
 		break
 	default:
-		err := fmt.Errorf("unsupported artifact type %q: this post-processor only imports "+
+		err := fmt.Errorf("unsupported artifact type %q: this post-processor only supports "+
 			"artifacts from QEMU/file builders and Artifice post-processor", a.BuilderId())
 		return nil, false, false, err
 	}
@@ -64,10 +81,10 @@ func (p *PostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.
 
 		// Template registration can take a _long time_, raising
 		// the Exoscale API client timeout as a precaution.
-		egoscale.ClientOptWithTimeout(30*time.Minute),
+		egoscale.ClientOptWithTimeout(time.Hour),
 	)
 	if err != nil {
-		return nil, false, false, fmt.Errorf("unable to initialize Exoscale client: %v", err)
+		return nil, false, false, fmt.Errorf("unable to initialize Exoscale client: %w", err)
 	}
 	p.exo = exo
 
@@ -89,7 +106,7 @@ func (p *PostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.
 			"")),
 	)
 	if err != nil {
-		return nil, false, false, fmt.Errorf("unable to initialize SOS client: %v", err)
+		return nil, false, false, fmt.Errorf("unable to initialize SOS client: %w", err)
 	}
 
 	p.sos = s3.NewFromConfig(cfg, func(o *s3.Options) {
@@ -97,16 +114,12 @@ func (p *PostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.
 	})
 
 	state := new(multistep.BasicStateBag)
-	state.Put("config", p.config)
-	state.Put("exo", p.exo)
-	state.Put("sos", p.sos)
 	state.Put("ui", ui)
 	state.Put("artifact", a)
 
 	steps := []multistep.Step{
-		new(stepUploadImage),
-		new(stepRegisterTemplate),
-		new(stepDeleteImage),
+		&stepUploadImage{postProcessor: p},
+		&stepRegisterTemplate{postProcessor: p},
 	}
 
 	ctx = exoapi.WithEndpoint(ctx, exoapi.NewReqEndpoint(p.config.APIEnvironment, p.config.TemplateZone))
@@ -126,13 +139,16 @@ func (p *PostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.
 		return nil, false, false, errors.New("post-processing halted")
 	}
 
-	v, ok := state.GetOk("template")
+	t, ok := state.GetOk("template")
 	if !ok {
 		return nil, false, false, errors.New("unable to find template in state")
 	}
 
 	return &Artifact{
-		state:    state,
-		template: v.(*egoscale.Template),
+		StateData: map[string]interface{}{"generated_data": state.Get("generated_data")},
+
+		postProcessor: p,
+		state:         state,
+		template:      t.(*egoscale.Template),
 	}, false, false, nil
 }

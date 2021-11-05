@@ -21,11 +21,36 @@ func init() {
 		version.SDKVersion.FormattedVersion(), egoscale.UserAgent)
 }
 
+type exoscaleClient interface {
+	AttachInstanceToPrivateNetwork(
+		context.Context,
+		string,
+		*egoscale.Instance,
+		*egoscale.PrivateNetwork,
+		...egoscale.AttachInstanceToPrivateNetworkOpt,
+	) error
+	CopyTemplate(context.Context, string, *egoscale.Template, string) (*egoscale.Template, error)
+	CreateInstance(context.Context, string, *egoscale.Instance) (*egoscale.Instance, error)
+	CreateInstanceSnapshot(context.Context, string, *egoscale.Instance) (*egoscale.Snapshot, error)
+	DeleteInstance(context.Context, string, *egoscale.Instance) error
+	DeleteSSHKey(context.Context, string, *egoscale.SSHKey) error
+	DeleteTemplate(context.Context, string, *egoscale.Template) error
+	ExportSnapshot(context.Context, string, *egoscale.Snapshot) (*egoscale.SnapshotExport, error)
+	FindInstanceType(context.Context, string, string) (*egoscale.InstanceType, error)
+	FindPrivateNetwork(context.Context, string, string) (*egoscale.PrivateNetwork, error)
+	FindSecurityGroup(context.Context, string, string) (*egoscale.SecurityGroup, error)
+	GetTemplate(context.Context, string, string) (*egoscale.Template, error)
+	ListTemplates(context.Context, string, ...egoscale.ListTemplatesOpt) ([]*egoscale.Template, error)
+	RegisterSSHKey(context.Context, string, string, string) (*egoscale.SSHKey, error)
+	RegisterTemplate(context.Context, string, *egoscale.Template) (*egoscale.Template, error)
+	StopInstance(context.Context, string, *egoscale.Instance) error
+}
+
 type Builder struct {
 	buildID string
 	config  *Config
 	runner  multistep.Runner
-	exo     *egoscale.Client
+	exo     exoscaleClient
 }
 
 func (b *Builder) Prepare(raws ...interface{}) ([]string, []string, error) {
@@ -56,16 +81,12 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 	b.exo = exo
 
 	state := new(multistep.BasicStateBag)
-	state.Put("build-id", b.buildID)
-	state.Put("config", b.config)
-	state.Put("exo", b.exo)
 	state.Put("hook", hook)
 	state.Put("ui", ui)
-	state.Put("zone", b.config.TemplateZone)
 
 	steps := []multistep.Step{
-		new(stepCreateSSHKey),
-		new(stepCreateInstance),
+		&stepCreateSSHKey{builder: b},
+		&stepCreateInstance{builder: b},
 		&communicator.StepConnect{
 			Config:    &b.config.Comm,
 			Host:      communicator.CommHost(b.config.Comm.Host(), "instance_ip_address"),
@@ -78,10 +99,10 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 		// by cloud-init don't have a name, so effectively the helper is not able to remove it.
 		// Users are expected to manually run a `rm -f $HOME/.ssh/authorized_keys` command from a provisioner
 		// if they want to remove any temporary SSH key installed during the template build.
-		new(stepStopInstance),
-		new(stepSnapshotInstance),
-		new(stepExportSnapshot),
-		new(stepRegisterTemplate),
+		&stepStopInstance{builder: b},
+		&stepSnapshotInstance{builder: b},
+		&stepExportSnapshot{builder: b},
+		&stepRegisterTemplate{builder: b},
 	}
 
 	ctx = exoapi.WithEndpoint(ctx, exoapi.NewReqEndpoint(b.config.APIEnvironment, b.config.TemplateZone))
@@ -101,7 +122,7 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 		return nil, errors.New("build halted")
 	}
 
-	v, ok := state.GetOk("template")
+	t, ok := state.GetOk("template")
 	if !ok {
 		return nil, errors.New("unable to find template in state")
 	}
@@ -109,7 +130,8 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 	return &Artifact{
 		StateData: map[string]interface{}{"generated_data": state.Get("generated_data")},
 
+		builder:  b,
 		state:    state,
-		template: v.(*egoscale.Template),
+		template: t.(*egoscale.Template),
 	}, nil
 }
