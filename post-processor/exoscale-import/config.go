@@ -4,6 +4,7 @@ package exoscaleimport
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/hashicorp/hcl/v2/hcldec"
 	"github.com/hashicorp/packer-plugin-sdk/common"
@@ -52,19 +53,18 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		return nil, err
 	}
 
-	requiredArgs := map[string]*string{
-		"api_key":       &config.APIKey,
-		"api_secret":    &config.APISecret,
-		"image_bucket":  &config.ImageBucket,
-		"template_zone": &config.TemplateZone,
-		"template_name": &config.TemplateName,
+	requiredArgs := map[string]interface{}{
+		"api_key":       config.APIKey,
+		"api_secret":    config.APISecret,
+		"image_bucket":  config.ImageBucket,
+		"template_name": config.TemplateName,
+		"template_zone": config.TemplateZone,
 	}
 
 	errs := new(packer.MultiError)
 	for k, v := range requiredArgs {
-		if *v == "" {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("%s must be set", k))
+		if reflect.ValueOf(v).IsZero() {
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("%s must be set", k))
 		}
 	}
 

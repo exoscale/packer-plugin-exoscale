@@ -9,32 +9,45 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-type stepRegisterTemplate struct{}
+type stepRegisterTemplate struct {
+	postProcessor *PostProcessor
+}
 
 func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	var (
-		exo           = state.Get("exo").(*egoscale.Client)
-		ui            = state.Get("ui").(packer.Ui)
-		config        = state.Get("config").(*Config)
 		imageURL      = state.Get("image_url").(string)
 		imageChecksum = state.Get("image_checksum").(string)
+		ui            = state.Get("ui").(packer.Ui)
 
-		passwordEnabled = !config.TemplateDisablePassword
-		sshkeyEnabled   = !config.TemplateDisableSSHKey
+		passwordEnabled = !s.postProcessor.config.TemplateDisablePassword
+		sshkeyEnabled   = !s.postProcessor.config.TemplateDisableSSHKey
 	)
 
 	ui.Say("Registering Compute instance template")
 
-	template, err := exo.RegisterTemplate(ctx, config.TemplateZone, &egoscale.Template{
-		BootMode:        &config.TemplateBootMode,
-		Checksum:        &imageChecksum,
-		DefaultUser:     &config.TemplateUsername,
-		Description:     &config.TemplateDescription,
-		Name:            &config.TemplateName,
-		PasswordEnabled: &passwordEnabled,
-		SSHKeyEnabled:   &sshkeyEnabled,
-		URL:             &imageURL,
-	})
+	template, err := s.postProcessor.exo.RegisterTemplate(
+		ctx,
+		s.postProcessor.config.TemplateZone,
+		&egoscale.Template{
+			BootMode: &s.postProcessor.config.TemplateBootMode,
+			Checksum: &imageChecksum,
+			DefaultUser: func() (v *string) {
+				if s.postProcessor.config.TemplateUsername != "" {
+					v = &s.postProcessor.config.TemplateUsername
+				}
+				return
+			}(),
+			Description: func() (v *string) {
+				if s.postProcessor.config.TemplateDescription != "" {
+					v = &s.postProcessor.config.TemplateDescription
+				}
+				return
+			}(),
+			Name:            &s.postProcessor.config.TemplateName,
+			PasswordEnabled: &passwordEnabled,
+			SSHKeyEnabled:   &sshkeyEnabled,
+			URL:             &imageURL,
+		})
 	if err != nil {
 		ui.Error(fmt.Sprintf("unable to export Compute instance snapshot: %s", err))
 		return multistep.ActionHalt

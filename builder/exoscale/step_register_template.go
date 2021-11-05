@@ -9,33 +9,36 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-type stepRegisterTemplate struct{}
+type stepRegisterTemplate struct {
+	builder *Builder
+}
 
 func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	var (
-		exo              = state.Get("exo").(*egoscale.Client)
-		config           = state.Get("config").(*Config)
-		snapshotURL      = state.Get("snapshot_url").(string)
 		snapshotChecksum = state.Get("snapshot_checksum").(string)
-		zone             = state.Get("zone").(string)
+		snapshotURL      = state.Get("snapshot_url").(string)
 		ui               = state.Get("ui").(packer.Ui)
 
-		passwordEnabled = !config.TemplateDisablePassword
-		sshkeyEnabled   = !config.TemplateDisableSSHKey
+		passwordEnabled = !s.builder.config.TemplateDisablePassword
+		sshkeyEnabled   = !s.builder.config.TemplateDisableSSHKey
 	)
 
 	ui.Say("Registering Compute instance template")
 
-	template, err := exo.RegisterTemplate(ctx, zone, &egoscale.Template{
-		BootMode:        &config.TemplateBootMode,
-		Checksum:        &snapshotChecksum,
-		DefaultUser:     &config.TemplateUsername,
-		Description:     &config.TemplateDescription,
-		Name:            &config.TemplateName,
-		PasswordEnabled: &passwordEnabled,
-		SSHKeyEnabled:   &sshkeyEnabled,
-		URL:             &snapshotURL,
-	})
+	template, err := s.builder.exo.RegisterTemplate(
+		ctx,
+		s.builder.config.TemplateZone,
+		&egoscale.Template{
+			BootMode:        &s.builder.config.TemplateBootMode,
+			Checksum:        &snapshotChecksum,
+			DefaultUser:     &s.builder.config.TemplateUsername,
+			Description:     &s.builder.config.TemplateDescription,
+			Name:            &s.builder.config.TemplateName,
+			PasswordEnabled: &passwordEnabled,
+			SSHKeyEnabled:   &sshkeyEnabled,
+			URL:             &snapshotURL,
+		},
+	)
 	if err != nil {
 		ui.Error(fmt.Sprintf("unable to register template: %s", err))
 		return multistep.ActionHalt

@@ -9,27 +9,26 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-type stepSnapshotInstance struct{}
+type stepSnapshotInstance struct {
+	builder *Builder
+}
 
 func (s *stepSnapshotInstance) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	var (
-		exo      = state.Get("exo").(*egoscale.Client)
-		config   = state.Get("config").(*Config)
 		instance = state.Get("instance").(*egoscale.Instance)
-		zone     = state.Get("zone").(string)
 		ui       = state.Get("ui").(packer.Ui)
 	)
 
 	ui.Say("Creating Compute instance snapshot")
 
-	snapshot, err := exo.CreateInstanceSnapshot(ctx, zone, instance)
+	snapshot, err := s.builder.exo.CreateInstanceSnapshot(ctx, s.builder.config.TemplateZone, instance)
 	if err != nil {
 		ui.Error(fmt.Sprintf("unable to create Compute instance snapshot: %v", err))
 		return multistep.ActionHalt
 	}
 	state.Put("snapshot", snapshot)
 
-	if config.PackerDebug {
+	if s.builder.config.PackerDebug {
 		ui.Message(fmt.Sprintf("Compute instance snapshot created successfully (ID: %s)", *snapshot.ID))
 	}
 

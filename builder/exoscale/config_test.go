@@ -1,11 +1,5 @@
 package exoscale
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/require"
-)
-
 var (
 	testConfigAPIKey           = "EXOabcdef0123456789abcdef01"
 	testConfigAPISecret        = "ABCDEFGHIJKLMNOPRQSTUVWXYZ0123456789abcdefg"
@@ -15,9 +9,9 @@ var (
 	testConfigSSHUsername      = "ubuntu"
 )
 
-func TestNewConfig(t *testing.T) {
+func (ts *testSuite) TestNewConfig() {
 	_, err := NewConfig()
-	require.Error(t, err, "incomplete configuration should return an error")
+	ts.Require().Error(err, "incomplete configuration should return an error")
 
 	// Minimal configuration
 	config, err := NewConfig([]interface{}{map[string]interface{}{
@@ -28,13 +22,13 @@ func TestNewConfig(t *testing.T) {
 		"template_zone":     testConfigTemplateZone,
 		"ssh_username":      testConfigSSHUsername,
 	}}...)
-	require.NoError(t, err)
-	require.NotNil(t, config)
-	require.Equal(t, defaultAPIEnvironment, config.APIEnvironment)
-	require.Equal(t, defaultInstanceType, config.InstanceType)
-	require.Equal(t, defaultInstanceDiskSize, config.InstanceDiskSize)
-	require.Equal(t, []string{defaultInstanceSecurityGroup}, config.InstanceSecurityGroups)
-	require.Equal(t, defaultInstanceTemplateVisibility, config.InstanceTemplateVisibility)
-	require.Equal(t, config.InstanceZone, testConfigTemplateZone)
-	require.Equal(t, defaultTemplateBootMode, config.TemplateBootMode)
+	ts.Require().NoError(err)
+	ts.Require().NotNil(config)
+	ts.Require().Equal(defaultAPIEnvironment, config.APIEnvironment)
+	ts.Require().Equal(defaultInstanceType, config.InstanceType)
+	ts.Require().Equal(defaultInstanceDiskSize, config.InstanceDiskSize)
+	ts.Require().Equal([]string{defaultInstanceSecurityGroup}, config.InstanceSecurityGroups)
+	ts.Require().Equal(defaultInstanceTemplateVisibility, config.InstanceTemplateVisibility)
+	ts.Require().Equal(config.InstanceZone, testConfigTemplateZone)
+	ts.Require().Equal(defaultTemplateBootMode, config.TemplateBootMode)
 }

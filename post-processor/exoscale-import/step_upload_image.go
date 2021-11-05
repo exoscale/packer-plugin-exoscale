@@ -17,12 +17,13 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 )
 
-type stepUploadImage struct{}
+type stepUploadImage struct {
+	postProcessor *PostProcessor
+}
 
 func (s *stepUploadImage) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	var (
 		ui       = state.Get("ui").(packer.Ui)
-		config   = state.Get("config").(*Config)
 		artifact = state.Get("artifact").(packer.Artifact)
 
 		imageFile  = artifact.Files()[0]
@@ -59,10 +60,10 @@ func (s *stepUploadImage) Run(ctx context.Context, state multistep.StateBag) mul
 	}
 
 	output, err := s3manager.
-		NewUploader(state.Get("sos").(*s3.Client)).
+		NewUploader(s.postProcessor.sos).
 		Upload(ctx,
 			&s3.PutObjectInput{
-				Bucket:     aws.String(config.ImageBucket),
+				Bucket:     aws.String(s.postProcessor.config.ImageBucket),
 				Key:        aws.String(bucketFile),
 				Body:       pf,
 				ContentMD5: aws.String(base64.StdEncoding.EncodeToString(hash.Sum(nil))),
@@ -79,4 +80,27 @@ func (s *stepUploadImage) Run(ctx context.Context, state multistep.StateBag) mul
 	return multistep.ActionContinue
 }
 
-func (s *stepUploadImage) Cleanup(_ multistep.StateBag) {}
+func (s *stepUploadImage) Cleanup(state multistep.StateBag) {
+	var (
+		ui       = state.Get("ui").(packer.Ui)
+		artifact = state.Get("artifact").(packer.Artifact)
+
+		imageFile  = artifact.Files()[0]
+		bucketFile = filepath.Base(imageFile)
+	)
+
+	if s.postProcessor.config.SkipClean {
+		return
+	}
+
+	ui.Say("Deleting uploaded template image")
+
+	_, err := s.postProcessor.sos.DeleteObject(context.Background(),
+		&s3.DeleteObjectInput{
+			Bucket: aws.String(s.postProcessor.config.ImageBucket),
+			Key:    aws.String(bucketFile),
+		})
+	if err != nil {
+		ui.Error(fmt.Sprintf("unable to delete template image: %v", err))
+	}
+}

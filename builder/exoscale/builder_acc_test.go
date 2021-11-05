@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	testAccTemplateName        = "test-packer-builder-exoscale"
+	testAccTemplateName        = "packer-plugin-test-" + new(testSuite).randomString(6)
 	testAccTemplateZone        = "ch-gva-2"
-	testAccTemplateDescription = "Built with Packer"
+	testAccTemplateDescription = new(testSuite).randomString(6)
 	testAccTemplateUsername    = "packer"
 )
 

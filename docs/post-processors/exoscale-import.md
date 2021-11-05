@@ -71,14 +71,14 @@ source "qemu" "base" {
     ["-drive", "file=${local.image_output_file},format=${local.image_format},if=virtio"],
     ["-drive", "file=seed.img,format=raw,if=virtio"]
   ]
-  cpus                  = 4
-  memory                = 4096
-  vm_name               = "${local.image_name}.${local.image_format}"
-  iso_url               = "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
-  iso_checksum_url      = "https://cloud-images.ubuntu.com/focal/current/SHA256SUMS"
-  iso_checksum_type     = "sha256"
-  format                = local.image_format
-  output_directory      = local.image_output_dir
+  cpus              = 4
+  memory            = 4096
+  vm_name           = "${local.image_name}.${local.image_format}"
+  iso_url           = "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
+  iso_checksum_url  = "https://cloud-images.ubuntu.com/focal/current/SHA256SUMS"
+  iso_checksum_type = "sha256"
+  format            = local.image_format
+  output_directory  = local.image_output_dir
   
   # ...
 }
@@ -104,12 +104,12 @@ build {
   sources = ["source.file.base"]
 
   post-processor "exoscale-import" {
-    api_key                 = var.exoscale_api_key
-    api_secret              = var.exoscale_api_secret
-    image_bucket            = "my-templates-${var.exoscale_zone}"
-    template_zone           = var.exoscale_zone
-    template_name           = local.image_name
-    template_username       = local.image_username
+    api_key           = var.exoscale_api_key
+    api_secret        = var.exoscale_api_secret
+    image_bucket      = "my-templates-${var.exoscale_zone}"
+    template_zone     = var.exoscale_zone
+    template_name     = local.image_name
+    template_username = local.image_username
   }
 }
 ```

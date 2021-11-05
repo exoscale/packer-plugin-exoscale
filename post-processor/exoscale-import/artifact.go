@@ -12,8 +12,11 @@ import (
 const BuilderId = "packer.post-processor.exoscale-import"
 
 type Artifact struct {
-	state    *multistep.BasicStateBag
-	template *egoscale.Template
+	StateData map[string]interface{}
+
+	postProcessor *PostProcessor
+	state         *multistep.BasicStateBag
+	template      *egoscale.Template
 }
 
 func (a *Artifact) BuilderId() string {
@@ -29,25 +32,27 @@ func (a *Artifact) Files() []string {
 }
 
 func (a *Artifact) String() string {
-	config := a.state.Get("config").(*Config)
-
-	return fmt.Sprintf("%s @ %s (%s)",
+	return fmt.Sprintf(
+		"%s @ %s (%s)",
 		*a.template.Name,
-		config.TemplateZone,
-		*a.template.ID)
+		*a.template.Zone,
+		*a.template.ID,
+	)
 }
 
-func (a *Artifact) State(_ string) interface{} {
-	return nil
+func (a *Artifact) State(name string) interface{} {
+	return a.StateData[name]
 }
 
 func (a *Artifact) Destroy() error {
-	exo := a.state.Get("exo").(*egoscale.Client)
-	config := a.state.Get("config").(*Config)
-
 	ctx := exoapi.WithEndpoint(
 		context.Background(),
-		exoapi.NewReqEndpoint(config.APIEnvironment, config.TemplateZone))
+		exoapi.NewReqEndpoint(a.postProcessor.config.APIEnvironment, *a.template.Zone),
+	)
 
-	return exo.DeleteTemplate(ctx, config.TemplateZone, a.template)
+	return a.postProcessor.exo.DeleteTemplate(ctx, *a.template.Zone, a.template)
+}
+
+func (a *Artifact) Template() *egoscale.Template {
+	return a.template
 }

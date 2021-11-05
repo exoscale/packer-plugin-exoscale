@@ -16,7 +16,7 @@ import (
 
 const (
 	defaultAPIEnvironment                   = "api"
-	defaultInstanceType                     = "Medium"
+	defaultInstanceType                     = "medium"
 	defaultInstanceDiskSize           int64 = 50
 	defaultInstanceSecurityGroup            = "default"
 	defaultInstanceTemplateVisibility       = "public"
@@ -71,8 +71,8 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		"api_key":           config.APIKey,
 		"api_secret":        config.APISecret,
 		"instance_template": config.InstanceTemplate,
-		"template_zone":     config.TemplateZone,
 		"template_name":     config.TemplateName,
+		"template_zone":     config.TemplateZone,
 	}
 
 	errs := new(packer.MultiError)
