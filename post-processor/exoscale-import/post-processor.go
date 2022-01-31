@@ -78,10 +78,7 @@ func (p *PostProcessor) PostProcess(
 	exo, err := egoscale.NewClient(
 		p.config.APIKey,
 		p.config.APISecret,
-
-		// Template registration can take a _long time_, raising
-		// the Exoscale API client timeout as a precaution.
-		egoscale.ClientOptWithTimeout(time.Hour),
+		egoscale.ClientOptWithTimeout(time.Duration(p.config.APITimeout*int64(time.Second))),
 	)
 	if err != nil {
 		return nil, false, false, fmt.Errorf("unable to initialize Exoscale client: %w", err)

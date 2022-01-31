@@ -72,7 +72,7 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 	exo, err := egoscale.NewClient(
 		b.config.APIKey,
 		b.config.APISecret,
-		egoscale.ClientOptWithTimeout(5*time.Minute),
+		egoscale.ClientOptWithTimeout(time.Duration(b.config.APITimeout*int64(time.Second))),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize Exoscale client: %v", err)

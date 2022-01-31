@@ -13,6 +13,7 @@ type FlatConfig struct {
 	APIEnvironment             *string           `mapstructure:"api_environment" cty:"api_environment" hcl:"api_environment"`
 	APIKey                     *string           `mapstructure:"api_key" cty:"api_key" hcl:"api_key"`
 	APISecret                  *string           `mapstructure:"api_secret" cty:"api_secret" hcl:"api_secret"`
+	APITimeout                 *uint64           `mapstructure:"api_timeout" cty:"api_timeout" hcl:"api_timeout"`
 	InstanceName               *string           `mapstructure:"instance_name" cty:"instance_name" hcl:"instance_name"`
 	InstanceZone               *string           `mapstructure:"instance_zone" cty:"instance_zone" hcl:"instance_zone"`
 	InstanceTemplate           *string           `mapstructure:"instance_template" cty:"instance_template" hcl:"instance_template"`
@@ -103,6 +104,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"api_environment":              &hcldec.AttrSpec{Name: "api_environment", Type: cty.String, Required: false},
 		"api_key":                      &hcldec.AttrSpec{Name: "api_key", Type: cty.String, Required: false},
 		"api_secret":                   &hcldec.AttrSpec{Name: "api_secret", Type: cty.String, Required: false},
+		"api_timeout":                  &hcldec.AttrSpec{Name: "api_timeout", Type: cty.Number, Required: false},
 		"instance_name":                &hcldec.AttrSpec{Name: "instance_name", Type: cty.String, Required: false},
 		"instance_zone":                &hcldec.AttrSpec{Name: "instance_zone", Type: cty.String, Required: false},
 		"instance_template":            &hcldec.AttrSpec{Name: "instance_template", Type: cty.String, Required: false},

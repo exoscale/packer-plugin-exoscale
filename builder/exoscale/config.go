@@ -27,6 +27,7 @@ type Config struct {
 	APIEnvironment             string   `mapstructure:"api_environment"`
 	APIKey                     string   `mapstructure:"api_key"`
 	APISecret                  string   `mapstructure:"api_secret"`
+	APITimeout                 int64    `mapstructure:"api_timeout"`
 	InstanceName               string   `mapstructure:"instance_name"`
 	InstanceZone               string   `mapstructure:"instance_zone"`
 	InstanceTemplate           string   `mapstructure:"instance_template"`
@@ -88,6 +89,10 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 
 	if len(errs.Errors) > 0 {
 		return nil, errs
+	}
+
+	if config.APITimeout == 0 {
+		config.APITimeout = 600
 	}
 
 	if config.InstanceZone == "" {

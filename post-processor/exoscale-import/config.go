@@ -23,6 +23,7 @@ type Config struct {
 	APIEnvironment          string `mapstructure:"api_environment"`
 	APIKey                  string `mapstructure:"api_key"`
 	APISecret               string `mapstructure:"api_secret"`
+	APITimeout              int64  `mapstructure:"api_timeout"`
 	ImageBucket             string `mapstructure:"image_bucket"`
 	TemplateZone            string `mapstructure:"template_zone"`
 	TemplateName            string `mapstructure:"template_name"`
@@ -74,6 +75,12 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 
 	if config.APIEnvironment == "" {
 		config.APIEnvironment = defaultAPIEnvironment
+	}
+
+	// Template registration can take a _long time_, set the default
+	// Exoscale API client timeout to 1h as a precaution.
+	if config.APITimeout == 0 {
+		config.APITimeout = 3600
 	}
 
 	if config.TemplateBootMode == "" {
