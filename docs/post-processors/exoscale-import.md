@@ -27,6 +27,9 @@ built locally by the [`qemu`][packer-doc-builder-qemu] builder.
 
 ### Optional
 
+- `api_timeout` (int) - The maximum API async operations waiting time in seconds.
+  Default to `3600`.
+
 - `sos_endpoint` (string) - The endpoint used to communicate with SOS.
   Defaults to `https://sos-<template_zone>.exo.io`.
 
