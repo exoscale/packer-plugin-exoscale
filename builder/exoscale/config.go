@@ -92,7 +92,7 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 	}
 
 	if config.APITimeout == 0 {
-		config.APITimeout = 600
+		config.APITimeout = 3600
 	}
 
 	if config.InstanceZone == "" {
