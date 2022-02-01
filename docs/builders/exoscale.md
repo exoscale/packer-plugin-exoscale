@@ -30,7 +30,7 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
 ### Optional
 
 - `api_timeout` (int) - The maximum API async operations waiting time in seconds.
-  Default to `3600`.
+  Defaults to `3600`.
 
 - `instance_type` (string) - The instance type of the Compute instance.
   Defaults to `Medium`.
