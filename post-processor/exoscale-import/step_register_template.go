@@ -29,24 +29,14 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 		ctx,
 		s.postProcessor.config.TemplateZone,
 		&egoscale.Template{
-			BootMode: &s.postProcessor.config.TemplateBootMode,
-			Checksum: &imageChecksum,
-			DefaultUser: func() (v *string) {
-				if s.postProcessor.config.TemplateUsername != "" {
-					v = &s.postProcessor.config.TemplateUsername
-				}
-				return
-			}(),
-			Description: func() (v *string) {
-				if s.postProcessor.config.TemplateDescription != "" {
-					v = &s.postProcessor.config.TemplateDescription
-				}
-				return
-			}(),
+			BootMode:        &s.postProcessor.config.TemplateBootMode,
+			Checksum:        nonEmptyStringPtr(imageChecksum),
+			DefaultUser:     nonEmptyStringPtr(s.postProcessor.config.TemplateUsername),
+			Description:     nonEmptyStringPtr(s.postProcessor.config.TemplateDescription),
 			Name:            &s.postProcessor.config.TemplateName,
 			PasswordEnabled: &passwordEnabled,
 			SSHKeyEnabled:   &sshkeyEnabled,
-			URL:             &imageURL,
+			URL:             nonEmptyStringPtr(imageURL),
 		})
 	if err != nil {
 		ui.Error(fmt.Sprintf("unable to export Compute instance snapshot: %s", err))
