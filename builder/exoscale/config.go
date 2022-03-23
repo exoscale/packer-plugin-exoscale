@@ -37,13 +37,15 @@ type Config struct {
 	InstanceSecurityGroups     []string `mapstructure:"instance_security_groups"`
 	InstancePrivateNetworks    []string `mapstructure:"instance_private_networks"`
 	InstanceSSHKey             string   `mapstructure:"instance_ssh_key"`
-	TemplateZone               string   `mapstructure:"template_zone"`
+	TemplateZones              []string `mapstructure:"template_zones"`
 	TemplateName               string   `mapstructure:"template_name"`
 	TemplateDescription        string   `mapstructure:"template_description"`
 	TemplateUsername           string   `mapstructure:"template_username"`
 	TemplateBootMode           string   `mapstructure:"template_boot_mode"`
 	TemplateDisablePassword    bool     `mapstructure:"template_disable_password"`
 	TemplateDisableSSHKey      bool     `mapstructure:"template_disable_sshkey"`
+	// Deprecated
+	TemplateZone               string   `mapstructure:"template_zone"`
 
 	ctx interpolate.Context
 
@@ -51,7 +53,7 @@ type Config struct {
 	Comm                communicator.Config `mapstructure:",squash"`
 }
 
-func NewConfig(raws ...interface{}) (*Config, error) {
+func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	var config Config
 
 	err := pkrconfig.Decode(
@@ -65,7 +67,18 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		},
 		raws...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	// Deprecated arguments
+	warnings := []string{}
+	// (template_zones <-> template_zone)
+	if config.TemplateZone != "" {
+		if len(config.TemplateZones) == 0 {
+			config.TemplateZones = []string{config.TemplateZone}
+		} else {
+			warnings = append(warnings, "Both template_zones and template_zone are defined; ignoring the latter")
+		}
 	}
 
 	requiredArgs := map[string]interface{}{
@@ -73,12 +86,12 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		"api_secret":        config.APISecret,
 		"instance_template": config.InstanceTemplate,
 		"template_name":     config.TemplateName,
-		"template_zone":     config.TemplateZone,
+		"template_zones":    config.TemplateZones,
 	}
 
 	errs := new(packer.MultiError)
 	for k, v := range requiredArgs {
-		if reflect.ValueOf(v).IsZero() {
+		if reflect.ValueOf(v).IsZero() || reflect.ValueOf(v).Len() == 0 {
 			errs = packer.MultiErrorAppend(errs, fmt.Errorf("%s must be set", k))
 		}
 	}
@@ -88,7 +101,7 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 	}
 
 	if len(errs.Errors) > 0 {
-		return nil, errs
+		return nil, warnings, errs
 	}
 
 	if config.APITimeout == 0 {
@@ -96,7 +109,7 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 	}
 
 	if config.InstanceZone == "" {
-		config.InstanceZone = config.TemplateZone
+		config.InstanceZone = config.TemplateZones[0]
 	}
 
 	if config.TemplateBootMode == "" {
@@ -123,7 +136,7 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		config.InstanceSecurityGroups = []string{defaultInstanceSecurityGroup}
 	}
 
-	return &config, nil
+	return &config, warnings, nil
 }
 
 // ConfigSpec returns HCL object spec

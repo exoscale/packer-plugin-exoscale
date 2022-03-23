@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	egoscale "github.com/exoscale/egoscale/v2"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
@@ -24,9 +25,10 @@ var (
 	testInstanceSnapshotID         = new(testSuite).randomID()
 	testInstanceTypeID             = new(testSuite).randomID()
 	testInstanceTypeName           = defaultInstanceType
+	testInstanceZone               = "ch-gva-2"
 	testTemplateID                 = new(testSuite).randomID()
 	testTemplateName               = new(testSuite).randomString(20)
-	testZone                       = "ch-gva-2"
+	testTemplateZones              = []string{"ch-gva-2", "ch-dk-2"}
 
 	testSeededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
@@ -45,6 +47,7 @@ func (ts *testSuite) SetupTest() {
 
 	ts.state = new(multistep.BasicStateBag)
 	ts.state.Put("ui", ts.ui)
+	ts.state.Put("templates", []*egoscale.Template{})
 }
 
 func (ts *testSuite) TearDownTest() {
@@ -99,7 +102,7 @@ func (ts *testSuite) TestBuilder_Prepare() {
 					"api_secret":        testConfigAPISecret,
 					"instance_template": testConfigInstanceTemplate,
 					"template_name":     testConfigTemplateName,
-					"template_zone":     testConfigTemplateZone,
+					"template_zones":    testConfigTemplateZones,
 					"ssh_username":      testConfigSSHUsername,
 				}},
 			},

@@ -12,7 +12,7 @@ import (
 func (ts *testSuite) TestStepStopInstance_Run() {
 	var (
 		testConfig = Config{
-			TemplateZone: testZone,
+			InstanceZone: testInstanceZone,
 		}
 		instanceStopped bool
 	)
@@ -25,9 +25,9 @@ func (ts *testSuite) TestStepStopInstance_Run() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"StopInstance",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // instance
+			mock.Anything,    // ctx
+			testInstanceZone, // zone
+			mock.Anything,    // instance
 		).
 		Run(func(args mock.Arguments) {
 			ts.Require().Equal(testInstance, args.Get(2))

@@ -21,7 +21,7 @@ func (s *stepExportSnapshot) Run(ctx context.Context, state multistep.StateBag) 
 
 	ui.Say("Exporting Compute instance snapshot")
 
-	snapshotExport, err := s.builder.exo.ExportSnapshot(ctx, s.builder.config.TemplateZone, snapshot)
+	snapshotExport, err := s.builder.exo.ExportSnapshot(ctx, s.builder.config.InstanceZone, snapshot)
 	if err != nil {
 		ui.Error(fmt.Sprintf("unable to export Compute instance snapshot: %v", err))
 		return multistep.ActionHalt
