@@ -14,13 +14,16 @@ built locally by the [`qemu`][packer-doc-builder-qemu] builder.
 
 - `api_secret` (string) - The API secret used to communicate with Exoscale
   services.
-  
+
 - `image_bucket` (string) - The name of the bucket in which to upload the
   template image to SOS. The bucket must exist when the post-processor is
   run.
 
-- `template_zone` (string) - The Exoscale [zone][zones] in which to register
-  the template.
+- `template_zones` (list of strings) - The Exoscale [zones][zones] in which to create the
+  template.
+
+- `template_zone` (string) - The Exoscale [zone][zones] in which to create the
+  template. **DEPRECATED** (use `template_zones` instead).
 
 - `template_name` (string) - The name to be used for registering the template.
 
@@ -30,8 +33,11 @@ built locally by the [`qemu`][packer-doc-builder-qemu] builder.
 - `api_timeout` (int) - The maximum API async operations waiting time in seconds.
   Defaults to `3600`.
 
+- `image_zone` (string) - The SOS Exoscale [zone][zones] in which to upload the template image.
+  Defaults to the first of `template_zones`.
+
 - `sos_endpoint` (string) - The endpoint used to communicate with SOS.
-  Defaults to `https://sos-<template_zone>.exo.io`.
+  Defaults to `https://sos-<image_zone>.exo.io`.
 
 - `template_description` (string) - The description of the registered template.
 
@@ -82,13 +88,13 @@ source "qemu" "base" {
   iso_checksum_type = "sha256"
   format            = local.image_format
   output_directory  = local.image_output_dir
-  
+
   # ...
 }
 
 build {
   sources = ["source.qemu.base"]
-  
+
   provisioner "shell" {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
     inline = [
