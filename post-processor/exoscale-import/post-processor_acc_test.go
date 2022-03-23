@@ -14,8 +14,8 @@ import (
 
 var (
 	// /!\/!\/!\ The SOS bucket used in the acceptance tests is located in CH-DK-2 /!\/!\/!\
-	testAccImageBucket  = "eat-template-images"
-	testAccTemplateZone = "ch-dk-2"
+	testAccImageBucket   = "eat-template-images"
+	testAccTemplateZones = []string{"ch-dk-2", "ch-gva-2"}
 
 	testAccTemplateName        = "packer-plugin-test-" + new(testSuite).randomString(6)
 	testAccTemplateDescription = new(testSuite).randomString(10)
@@ -51,7 +51,7 @@ func TestAccPostProcessor(t *testing.T) {
 		"api_key":              os.Getenv("EXOSCALE_API_KEY"),
 		"api_secret":           os.Getenv("EXOSCALE_API_SECRET"),
 		"image_bucket":         testAccImageBucket,
-		"template_zone":        testAccTemplateZone,
+		"template_zones":       testAccTemplateZones,
 		"template_name":        testAccTemplateName,
 		"template_description": testAccTemplateDescription,
 		"template_username":    testAccTemplateUsername,
@@ -66,11 +66,14 @@ func TestAccPostProcessor(t *testing.T) {
 	require.NotNil(t, artifact)
 
 	a := artifact.(*Artifact)
-	require.NotNil(t, a.template.ID)
-	require.Equal(t, testAccTemplateName, *a.template.Name)
-	require.Equal(t, testAccTemplateDescription, *a.template.Description)
-	require.Equal(t, defaultTemplateBootMode, *a.template.BootMode)
-	require.Equal(t, testAccTemplateUsername, *a.template.DefaultUser)
+	require.Equal(t, len(a.templates), len(testAccTemplateZones))
+	for _, template := range a.templates {
+		require.NotNil(t, template.ID)
+		require.Equal(t, testAccTemplateName, *template.Name)
+		require.Equal(t, testAccTemplateDescription, *template.Description)
+		require.Equal(t, defaultTemplateBootMode, *template.BootMode)
+		require.Equal(t, testAccTemplateUsername, *template.DefaultUser)
+	}
 
 	require.NoError(t, artifact.Destroy())
 }

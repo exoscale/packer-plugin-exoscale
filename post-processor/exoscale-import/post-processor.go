@@ -87,13 +87,13 @@ func (p *PostProcessor) PostProcess(
 
 	cfg, err := awsconfig.LoadDefaultConfig(
 		ctx,
-		awsconfig.WithRegion(p.config.TemplateZone),
+		awsconfig.WithRegion(p.config.ImageZone),
 
 		awsconfig.WithEndpointResolver(aws.EndpointResolverFunc(
 			func(service, region string) (aws.Endpoint, error) {
 				return aws.Endpoint{
 					URL:           p.config.SOSEndpoint,
-					SigningRegion: p.config.TemplateZone,
+					SigningRegion: p.config.ImageZone,
 				}, nil
 			})),
 
@@ -113,13 +113,17 @@ func (p *PostProcessor) PostProcess(
 	state := new(multistep.BasicStateBag)
 	state.Put("ui", ui)
 	state.Put("artifact", a)
+	// A single template is registered (once) in the first zone and then copied as many times
+	// as they are additional zones. We must keep track of each template-zone, as final artifact
+	state.Put("templates", []*egoscale.Template{})
 
 	steps := []multistep.Step{
 		&stepUploadImage{postProcessor: p},
 		&stepRegisterTemplate{postProcessor: p},
+		&stepCopyTemplate{postProcessor: p},
 	}
 
-	ctx = exoapi.WithEndpoint(ctx, exoapi.NewReqEndpoint(p.config.APIEnvironment, p.config.TemplateZone))
+	ctx = exoapi.WithEndpoint(ctx, exoapi.NewReqEndpoint(p.config.APIEnvironment, p.config.ImageZone))
 
 	p.runner = commonsteps.NewRunnerWithPauseFn(steps, p.config.PackerConfig, ui, state)
 	p.runner.Run(ctx, state)
@@ -136,9 +140,9 @@ func (p *PostProcessor) PostProcess(
 		return nil, false, false, errors.New("post-processing halted")
 	}
 
-	t, ok := state.GetOk("template")
+	templates, ok := state.GetOk("templates")
 	if !ok {
-		return nil, false, false, errors.New("unable to find template in state")
+		return nil, false, false, errors.New("unable to find templates in state")
 	}
 
 	return &Artifact{
@@ -146,6 +150,6 @@ func (p *PostProcessor) PostProcess(
 
 		postProcessor: p,
 		state:         state,
-		template:      t.(*egoscale.Template),
+		templates:     templates.([]*egoscale.Template),
 	}, false, false, nil
 }
