@@ -1,3 +1,5 @@
 main
 dist/*
 packer-plugin-scaffolding
+bin
+packer-plugin-exoscale
