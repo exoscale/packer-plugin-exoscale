@@ -22,10 +22,16 @@ jobs:
       run: |
         sudo apt-get install -y jq
         git submodule update --init --recursive go.mk
-        go mod vendor
-    - name: Run tests
+        PATH=$(go env GOPATH)/bin:$PATH make vendor installgolangcilint
+    - name: Lint
       run: |
-        PATH=$(go env GOPATH)/bin:$PATH make lint test-verbose test-acc
+        PATH=$(go env GOPATH)/bin:$PATH make lint
+    - name: Unit tests
+      run: |
+        PATH=$(go env GOPATH)/bin:$PATH make test-verbose
+    - name: Acceptance tests
+      run: |
+        PATH=$(go env GOPATH)/bin:$PATH make test-acc
       env:
         EXOSCALE_API_KEY: ${{ secrets.EXOSCALE_API_KEY }}
         EXOSCALE_API_SECRET: ${{ secrets.EXOSCALE_API_SECRET }}
