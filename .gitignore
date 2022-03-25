@@ -1,5 +1,5 @@
 main
 dist/*
-packer-plugin-scaffolding
+vendor
 bin
 packer-plugin-exoscale
