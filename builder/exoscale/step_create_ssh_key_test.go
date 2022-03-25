@@ -14,7 +14,7 @@ import (
 func (ts *testSuite) TestStepCreateSSHKey_Run() {
 	var (
 		testConfig = Config{
-			TemplateZone: testZone,
+			InstanceZone: testInstanceZone,
 			PackerConfig: common.PackerConfig{PackerDebug: true},
 		}
 		sshKeyRegistered bool
@@ -23,10 +23,10 @@ func (ts *testSuite) TestStepCreateSSHKey_Run() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"RegisterSSHKey",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // name
-			mock.Anything, // publicKey
+			mock.Anything,    // ctx
+			testInstanceZone, // zone
+			mock.Anything,    // name
+			mock.Anything,    // publicKey
 		).
 		Run(func(args mock.Arguments) {
 			ts.Require().Equal(testConfig.InstanceSSHKey, args.Get(2))
@@ -57,7 +57,7 @@ func (ts *testSuite) TestStepCreateSSHKey_Cleanup() {
 	var (
 		testConfig = Config{
 			InstanceSSHKey: "packer-" + ts.randomID(),
-			TemplateZone:   testZone,
+			InstanceZone:   testInstanceZone,
 			PackerConfig:   common.PackerConfig{PackerDebug: true},
 		}
 		sshKeyDeleted bool
@@ -66,9 +66,9 @@ func (ts *testSuite) TestStepCreateSSHKey_Cleanup() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"DeleteSSHKey",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // sshKey
+			mock.Anything,    // ctx
+			testInstanceZone, // zone
+			mock.Anything,    // sshKey
 		).
 		Run(func(args mock.Arguments) {
 			ts.Require().Equal(&egoscale.SSHKey{Name: &testConfig.InstanceSSHKey}, args.Get(2))

@@ -18,16 +18,18 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 		snapshotChecksum = state.Get("snapshot_checksum").(string)
 		snapshotURL      = state.Get("snapshot_url").(string)
 		ui               = state.Get("ui").(packer.Ui)
+		templates        = state.Get("templates").([]*egoscale.Template)
 
+		registerZone    = s.builder.config.TemplateZones[0]
 		passwordEnabled = !s.builder.config.TemplateDisablePassword
 		sshkeyEnabled   = !s.builder.config.TemplateDisableSSHKey
 	)
 
-	ui.Say("Registering Compute instance template")
+	ui.Say(fmt.Sprintf("Registering Compute instance template (in %s)", registerZone))
 
 	template, err := s.builder.exo.RegisterTemplate(
 		ctx,
-		s.builder.config.TemplateZone,
+		registerZone,
 		&egoscale.Template{
 			BootMode:        &s.builder.config.TemplateBootMode,
 			Checksum:        nonEmptyStringPtr(snapshotChecksum),
@@ -44,7 +46,8 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 		return multistep.ActionHalt
 	}
 
-	state.Put("template", template)
+	templates = append(templates, template)
+	state.Put("templates", templates)
 
 	return multistep.ActionContinue
 }

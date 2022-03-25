@@ -49,7 +49,7 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 
 	_, err = s.builder.exo.RegisterSSHKey(
 		ctx,
-		s.builder.config.TemplateZone,
+		s.builder.config.InstanceZone,
 		s.builder.config.InstanceSSHKey,
 		string(pair.Public),
 	)
@@ -90,12 +90,12 @@ func (s *stepCreateSSHKey) Cleanup(state multistep.StateBag) {
 
 		ctx := exoapi.WithEndpoint(
 			context.Background(),
-			exoapi.NewReqEndpoint(s.builder.config.APIEnvironment, s.builder.config.TemplateZone),
+			exoapi.NewReqEndpoint(s.builder.config.APIEnvironment, s.builder.config.InstanceZone),
 		)
 
 		if err := s.builder.exo.DeleteSSHKey(
 			ctx,
-			s.builder.config.TemplateZone,
+			s.builder.config.InstanceZone,
 			&egoscale.SSHKey{Name: &s.builder.config.InstanceSSHKey},
 		); err != nil {
 			ui.Error(fmt.Sprintf("unable to delete SSH key: %v", err))

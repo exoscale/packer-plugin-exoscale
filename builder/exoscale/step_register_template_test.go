@@ -12,7 +12,7 @@ import (
 func (ts *testSuite) TestStepRegisterTemplate_Run() {
 	var (
 		testConfig = Config{
-			TemplateZone:        testZone,
+			TemplateZones:       testTemplateZones,
 			TemplateName:        ts.randomString(10),
 			TemplateDescription: ts.randomString(10),
 			TemplateUsername:    ts.randomString(10),
@@ -41,9 +41,9 @@ func (ts *testSuite) TestStepRegisterTemplate_Run() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"RegisterTemplate",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // template
+			mock.Anything,        // ctx
+			testTemplateZones[0], // zone
+			mock.Anything,        // template
 		).
 		Run(func(args mock.Arguments) {
 			ts.Require().Equal(testTemplate, args.Get(2))
@@ -62,13 +62,13 @@ func (ts *testSuite) TestStepRegisterTemplate_Run() {
 	ts.Require().True(templateRegistered)
 	ts.Require().Empty(ts.ui.(*packer.MockUi).ErrorMessage)
 	ts.Require().Equal(stepAction, multistep.ActionContinue)
-	ts.Require().Equal(testTemplate, ts.state.Get("template"))
+	ts.Require().Equal(testTemplate, ts.state.Get("templates").([]*egoscale.Template)[0])
 }
 
 func (ts *testSuite) TestStepRegisterTemplateWithEmptyFields_Run() {
 	var (
 		testConfig = Config{
-			TemplateZone:        testZone,
+			TemplateZones:       testTemplateZones,
 			TemplateName:        ts.randomString(10),
 			TemplateDescription: "",
 			TemplateUsername:    "",
@@ -97,9 +97,9 @@ func (ts *testSuite) TestStepRegisterTemplateWithEmptyFields_Run() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"RegisterTemplate",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // template
+			mock.Anything,        // ctx
+			testTemplateZones[0], // zone
+			mock.Anything,        // template
 		).
 		Run(func(args mock.Arguments) {
 			ts.Require().Equal(testTemplate, args.Get(2))
@@ -118,5 +118,5 @@ func (ts *testSuite) TestStepRegisterTemplateWithEmptyFields_Run() {
 	ts.Require().True(templateRegistered)
 	ts.Require().Empty(ts.ui.(*packer.MockUi).ErrorMessage)
 	ts.Require().Equal(stepAction, multistep.ActionContinue)
-	ts.Require().Equal(testTemplate, ts.state.Get("template"))
+	ts.Require().Equal(testTemplate, ts.state.Get("templates").([]*egoscale.Template)[0])
 }

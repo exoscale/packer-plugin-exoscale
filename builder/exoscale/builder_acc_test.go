@@ -13,7 +13,7 @@ import (
 
 var (
 	testAccTemplateName        = "packer-plugin-test-" + new(testSuite).randomString(6)
-	testAccTemplateZone        = "ch-gva-2"
+	testAccTemplateZones       = []string{"ch-gva-2", "ch-dk-2"}
 	testAccTemplateDescription = new(testSuite).randomString(6)
 	testAccTemplateUsername    = "packer"
 )
@@ -39,7 +39,7 @@ func TestAccBuilder(t *testing.T) {
 		"instance_disk_size": 10,
 		"ssh_username":       "ubuntu",
 
-		"template_zone":        testAccTemplateZone,
+		"template_zones":       testAccTemplateZones,
 		"template_name":        testAccTemplateName,
 		"template_description": testAccTemplateDescription,
 		"template_username":    testAccTemplateUsername,
@@ -51,11 +51,14 @@ func TestAccBuilder(t *testing.T) {
 	require.NotNil(t, artifact)
 
 	a := artifact.(*Artifact)
-	require.NotNil(t, a.template.ID)
-	require.Equal(t, testAccTemplateName, *a.template.Name)
-	require.Equal(t, testAccTemplateDescription, *a.template.Description)
-	require.Equal(t, defaultTemplateBootMode, *a.template.BootMode)
-	require.Equal(t, testAccTemplateUsername, *a.template.DefaultUser)
+	require.Equal(t, len(a.templates), len(testAccTemplateZones))
+	for _, template := range a.templates {
+		require.NotNil(t, template.ID)
+		require.Equal(t, testAccTemplateName, *template.Name)
+		require.Equal(t, testAccTemplateDescription, *template.Description)
+		require.Equal(t, defaultTemplateBootMode, *template.BootMode)
+		require.Equal(t, testAccTemplateUsername, *template.DefaultUser)
+	}
 
 	require.NoError(t, artifact.Destroy())
 }

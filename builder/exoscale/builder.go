@@ -54,15 +54,15 @@ type Builder struct {
 }
 
 func (b *Builder) Prepare(raws ...interface{}) ([]string, []string, error) {
-	config, err := NewConfig(raws...)
+	config, warnings, err := NewConfig(raws...)
 	if err != nil {
-		return nil, nil, err
+		return nil, warnings, err
 	}
 	b.config = config
 
 	packer.LogSecretFilter.Set(b.config.APIKey, b.config.APISecret)
 
-	return nil, nil, nil
+	return nil, warnings, nil
 }
 
 func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (packer.Artifact, error) {
@@ -83,6 +83,9 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 	state := new(multistep.BasicStateBag)
 	state.Put("hook", hook)
 	state.Put("ui", ui)
+	// A single template is registered (once) in the first zone and then copied as many times
+	// as they are additional zones. We must keep track of each template-zone, as final artifact
+	state.Put("templates", []*egoscale.Template{})
 
 	steps := []multistep.Step{
 		&stepCreateSSHKey{builder: b},
@@ -103,9 +106,10 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 		&stepSnapshotInstance{builder: b},
 		&stepExportSnapshot{builder: b},
 		&stepRegisterTemplate{builder: b},
+		&stepCopyTemplate{builder: b},
 	}
 
-	ctx = exoapi.WithEndpoint(ctx, exoapi.NewReqEndpoint(b.config.APIEnvironment, b.config.TemplateZone))
+	ctx = exoapi.WithEndpoint(ctx, exoapi.NewReqEndpoint(b.config.APIEnvironment, b.config.InstanceZone))
 
 	b.runner = commonsteps.NewRunnerWithPauseFn(steps, b.config.PackerConfig, ui, state)
 	b.runner.Run(ctx, state)
@@ -122,16 +126,16 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 		return nil, errors.New("build halted")
 	}
 
-	t, ok := state.GetOk("template")
+	templates, ok := state.GetOk("templates")
 	if !ok {
-		return nil, errors.New("unable to find template in state")
+		return nil, errors.New("unable to find templates in state")
 	}
 
 	return &Artifact{
 		StateData: map[string]interface{}{"generated_data": state.Get("generated_data")},
 
-		builder:  b,
-		state:    state,
-		template: t.(*egoscale.Template),
+		builder:   b,
+		state:     state,
+		templates: templates.([]*egoscale.Template),
 	}, nil
 }

@@ -8,14 +8,22 @@ import (
 func (ts *testSuite) TestArtifact_Destroy() {
 	var (
 		testConfig = Config{
-			TemplateZone: testZone,
+			TemplateZones: testTemplateZones,
 		}
-		templateDeleted bool
+		templateDeleted = 0
 	)
 
-	testTemplate := egoscale.Template{
-		ID:   &testTemplateID,
-		Zone: &testZone,
+	testTemplates := []*egoscale.Template{}
+	testTemplatesMap := map[string]*egoscale.Template{}
+	for i := 0; i < len(testTemplateZones); i++ {
+		testTemplates = append(
+			testTemplates,
+			&egoscale.Template{
+				ID:   &testTemplateID,
+				Zone: &testTemplateZones[i],
+			},
+		)
+		testTemplatesMap[testTemplateZones[i]] = testTemplates[i]
 	}
 
 	testArtifact := &Artifact{
@@ -24,23 +32,25 @@ func (ts *testSuite) TestArtifact_Destroy() {
 			config:  &testConfig,
 			exo:     ts.exo,
 		},
-		state:    ts.state,
-		template: &testTemplate,
+		state:     ts.state,
+		templates: testTemplates,
 	}
 
-	ts.exo.(*exoscaleClientMock).
-		On(
+	for i := 0; i < len(testTemplateZones); i++ {
+		ts.exo.(*exoscaleClientMock).
+			On(
 			"DeleteTemplate",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // template
+			mock.Anything,        // ctx
+			testTemplateZones[i], // zone
+			mock.Anything,        // template
 		).
-		Run(func(args mock.Arguments) {
-			ts.Require().Equal(&testTemplate, args.Get(2))
-			templateDeleted = true
+			Run(func(args mock.Arguments) {
+			ts.Require().Equal(testTemplatesMap[args.Get(1).(string)], args.Get(2))
+			templateDeleted++
 		}).
-		Return(nil)
+			Return(nil)
+	}
 
 	ts.Require().NoError(testArtifact.Destroy())
-	ts.Require().True(templateDeleted)
+	ts.Require().Equal(templateDeleted, 1)  // NB: DeleteTemplate needs be called only once
 }

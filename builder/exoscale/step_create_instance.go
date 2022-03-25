@@ -26,7 +26,7 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 
 	instanceType, err := s.builder.exo.FindInstanceType(
 		ctx,
-		s.builder.config.TemplateZone,
+		s.builder.config.InstanceZone,
 		s.builder.config.InstanceType,
 	)
 	if err != nil {
@@ -35,12 +35,12 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 	}
 
 	// Opportunistic shortcut in case the template is referenced by ID.
-	template, _ := s.builder.exo.GetTemplate(ctx, s.builder.config.TemplateZone, s.builder.config.InstanceTemplate)
+	template, _ := s.builder.exo.GetTemplate(ctx, s.builder.config.InstanceZone, s.builder.config.InstanceTemplate)
 
 	if template == nil {
 		templates, err := s.builder.exo.ListTemplates(
 			ctx,
-			s.builder.config.TemplateZone,
+			s.builder.config.InstanceZone,
 			egoscale.ListTemplatesWithVisibility(s.builder.config.InstanceTemplateVisibility),
 		)
 		if err != nil {
@@ -58,12 +58,12 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 				"no template %q found with visibility %s in zone %s",
 				s.builder.config.InstanceTemplate,
 				s.builder.config.InstanceTemplateVisibility,
-				s.builder.config.TemplateZone,
+				s.builder.config.InstanceZone,
 			))
 			return multistep.ActionHalt
 		}
 
-		template, err = s.builder.exo.GetTemplate(ctx, s.builder.config.TemplateZone, *template.ID)
+		template, err = s.builder.exo.GetTemplate(ctx, s.builder.config.InstanceZone, *template.ID)
 		if err != nil {
 			ui.Error(fmt.Sprintf("unable to retrieve template: %v", err))
 			return multistep.ActionHalt
@@ -87,7 +87,7 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 	securityGroupIDs, err := func() ([]string, error) {
 		ids := make([]string, len(s.builder.config.InstanceSecurityGroups))
 		for i, p := range s.builder.config.InstanceSecurityGroups {
-			securityGroup, err := s.builder.exo.FindSecurityGroup(ctx, s.builder.config.TemplateZone, p)
+			securityGroup, err := s.builder.exo.FindSecurityGroup(ctx, s.builder.config.InstanceZone, p)
 			if err != nil {
 				return nil, fmt.Errorf("%s: %v", p, err)
 			}
@@ -103,14 +103,14 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 		instance.SecurityGroupIDs = &securityGroupIDs
 	}
 
-	instance, err = s.builder.exo.CreateInstance(ctx, s.builder.config.TemplateZone, instance)
+	instance, err = s.builder.exo.CreateInstance(ctx, s.builder.config.InstanceZone, instance)
 	if err != nil {
 		ui.Error(fmt.Sprintf("unable to create Compute instance: %v", err))
 		return multistep.ActionHalt
 	}
 
 	for _, p := range s.builder.config.InstancePrivateNetworks {
-		privateNetwork, err := s.builder.exo.FindPrivateNetwork(ctx, s.builder.config.TemplateZone, p)
+		privateNetwork, err := s.builder.exo.FindPrivateNetwork(ctx, s.builder.config.InstanceZone, p)
 		if err != nil {
 			ui.Error(fmt.Sprintf("unable to retrieve Private Network %q: %v", p, err))
 			return multistep.ActionHalt
@@ -118,7 +118,7 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 
 		err = s.builder.exo.AttachInstanceToPrivateNetwork(
 			ctx,
-			s.builder.config.TemplateZone,
+			s.builder.config.InstanceZone,
 			instance,
 			privateNetwork,
 		)
@@ -150,11 +150,11 @@ func (s *stepCreateInstance) Cleanup(state multistep.StateBag) {
 
 		ctx := exoapi.WithEndpoint(
 			context.Background(),
-			exoapi.NewReqEndpoint(s.builder.config.APIEnvironment, s.builder.config.TemplateZone))
+			exoapi.NewReqEndpoint(s.builder.config.APIEnvironment, s.builder.config.InstanceZone))
 
 		instance := v.(*egoscale.Instance)
 
-		if err := s.builder.exo.DeleteInstance(ctx, s.builder.config.TemplateZone, instance); err != nil {
+		if err := s.builder.exo.DeleteInstance(ctx, s.builder.config.InstanceZone, instance); err != nil {
 			ui.Error(fmt.Sprintf("unable to delete Compute instance: %v", err))
 		}
 	}

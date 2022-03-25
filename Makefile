@@ -1,3 +1,6 @@
+# Requires: https://github.com/exoscale/go.mk
+# - install: git submodule update --init --recursive go.mk
+# - update:  git submodule update --remote --rebase
 include go.mk/init.mk
 include go.mk/public.mk
 

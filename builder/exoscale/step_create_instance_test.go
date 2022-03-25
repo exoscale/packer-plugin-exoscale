@@ -20,7 +20,8 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 			InstancePrivateNetworks: []string{testInstancePrivateNetworkName},
 			InstanceTemplate:        testTemplateName,
 			InstanceType:            testInstanceTypeName,
-			TemplateZone:            testZone,
+			InstanceZone:            testInstanceZone,
+			TemplateZones:           testTemplateZones,
 		}
 		instanceCreated                bool
 		instancePrivateNetworkAttached bool
@@ -30,14 +31,14 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 		ID:              &testInstanceID,
 		Name:            &testInstanceName,
 		PublicIPAddress: &testInstanceIPAddress,
-		Zone:            &testZone,
+		Zone:            &testInstanceZone,
 	}
 
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"FindInstanceType",
 			mock.Anything,           // ctx
-			testZone,                // zone
+			testInstanceZone,        // zone
 			testConfig.InstanceType, // x
 		).
 		Return(&egoscale.InstanceType{ID: &testInstanceTypeID}, nil)
@@ -46,7 +47,7 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 		On(
 			"GetTemplate",
 			mock.Anything,               // ctx
-			testZone,                    // zone
+			testInstanceZone,            // zone
 			testConfig.InstanceTemplate, // id
 		).
 		Return((*egoscale.Template)(nil), exoapi.ErrNotFound).
@@ -55,9 +56,9 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"ListTemplates",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // opts
+			mock.Anything,    // ctx
+			testInstanceZone, // zone
+			mock.Anything,    // opts
 		).
 		Return([]*egoscale.Template{{
 			ID:   &testTemplateID,
@@ -67,16 +68,16 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"GetTemplate",
-			mock.Anything,   // ctx
-			testZone,        // zone
-			testTemplateID). // x
+			mock.Anything,    // ctx
+			testInstanceZone, // zone
+			testTemplateID).  // x
 		Return(&egoscale.Template{ID: &testTemplateID}, nil)
 
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"FindSecurityGroup",
 			mock.Anything,                        // ctx
-			testZone,                             // zone
+			testInstanceZone,                     // zone
 			testConfig.InstanceSecurityGroups[0], // x
 		).
 		Return(&egoscale.SecurityGroup{ID: &testInstanceSecurityGroupID}, nil)
@@ -84,9 +85,9 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"CreateInstance",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // instance
+			mock.Anything,    // ctx
+			testInstanceZone, // zone
+			mock.Anything,    // instance
 		).
 		Run(func(args mock.Arguments) {
 			ts.Require().Equal(
@@ -107,7 +108,7 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 		On(
 			"FindPrivateNetwork",
 			mock.Anything,                         // ctx
-			testZone,                              // zone
+			testInstanceZone,                      // zone
 			testConfig.InstancePrivateNetworks[0], // x
 		).
 		Return(&egoscale.PrivateNetwork{ID: &testInstancePrivateNetworkID}, nil)
@@ -115,11 +116,11 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"AttachInstanceToPrivateNetwork",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // instance
-			mock.Anything, // privateNetwork
-			mock.Anything, // opts
+			mock.Anything,    // ctx
+			testInstanceZone, // zone
+			mock.Anything,    // instance
+			mock.Anything,    // privateNetwork
+			mock.Anything,    // opts
 		).
 		Run(func(args mock.Arguments) {
 			ts.Require().Equal(testInstanceID, *(args.Get(2).(*egoscale.Instance).ID))
@@ -146,14 +147,14 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 func (ts *testSuite) TestStepCreateInstance_Cleanup() {
 	var (
 		testConfig = Config{
-			TemplateZone: testZone,
+			InstanceZone: testInstanceZone,
 		}
 		instanceDeleted bool
 	)
 
 	testInstance := &egoscale.Instance{
 		ID:   &testInstanceID,
-		Zone: &testZone,
+		Zone: &testInstanceZone,
 	}
 
 	ts.state.Put("instance", testInstance)
@@ -161,9 +162,9 @@ func (ts *testSuite) TestStepCreateInstance_Cleanup() {
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"DeleteInstance",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // instance
+			mock.Anything,    // ctx
+			testInstanceZone, // zone
+			mock.Anything,    // instance
 		).
 		Run(func(args mock.Arguments) {
 			ts.Require().Equal(testInstance, args.Get(2))

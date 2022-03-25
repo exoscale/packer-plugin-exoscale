@@ -12,7 +12,7 @@ import (
 func (ts *testSuite) TestStepExportSnapshot_Run() {
 	var (
 		testConfig = Config{
-			TemplateZone: testZone,
+			InstanceZone: testInstanceZone,
 		}
 		testSnapshotChecksum     = ts.randomString(32)
 		testSnapshotPresignedURL = ts.randomString(100)
@@ -21,16 +21,16 @@ func (ts *testSuite) TestStepExportSnapshot_Run() {
 
 	testSnapshot := &egoscale.Snapshot{
 		ID:   &testInstanceSnapshotID,
-		Zone: &testZone,
+		Zone: &testInstanceZone,
 	}
 	ts.state.Put("snapshot", testSnapshot)
 
 	ts.exo.(*exoscaleClientMock).
 		On(
 			"ExportSnapshot",
-			mock.Anything, // ctx
-			testZone,      // zone
-			mock.Anything, // snapshot
+			mock.Anything,    // ctx
+			testInstanceZone, // zone
+			mock.Anything,    // snapshot
 		).
 		Run(func(args mock.Arguments) {
 			ts.Require().Equal(testSnapshot, args.Get(2))

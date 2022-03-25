@@ -3,6 +3,7 @@ package exoscaleimport
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	egoscale "github.com/exoscale/egoscale/v2"
 	exoapi "github.com/exoscale/egoscale/v2/api"
@@ -16,7 +17,7 @@ type Artifact struct {
 
 	postProcessor *PostProcessor
 	state         *multistep.BasicStateBag
-	template      *egoscale.Template
+	templates     []*egoscale.Template
 }
 
 func (a *Artifact) BuilderId() string {
@@ -24,7 +25,7 @@ func (a *Artifact) BuilderId() string {
 }
 
 func (a *Artifact) Id() string {
-	return *a.template.ID
+	return *a.templates[0].ID
 }
 
 func (a *Artifact) Files() []string {
@@ -32,11 +33,17 @@ func (a *Artifact) Files() []string {
 }
 
 func (a *Artifact) String() string {
+	templateName := *a.templates[0].Name
+	templateID := *a.templates[0].ID
+	templateZones := []string{}
+	for i := 0; i < len(a.templates); i++ {
+		templateZones = append(templateZones, *a.templates[0].Zone)
+	}
 	return fmt.Sprintf(
 		"%s @ %s (%s)",
-		*a.template.Name,
-		*a.template.Zone,
-		*a.template.ID,
+		templateName,
+		strings.Join(templateZones, ","),
+		templateID,
 	)
 }
 
@@ -45,14 +52,20 @@ func (a *Artifact) State(name string) interface{} {
 }
 
 func (a *Artifact) Destroy() error {
+	// Nota Bene: a single DeleteTemplate deletes a given template (ID) accross ALL zones [sc-37437]
+	// (iow. templates created in additional zones by CopyTemplate are deleted too)
 	ctx := exoapi.WithEndpoint(
 		context.Background(),
-		exoapi.NewReqEndpoint(a.postProcessor.config.APIEnvironment, *a.template.Zone),
+		exoapi.NewReqEndpoint(a.postProcessor.config.APIEnvironment, *a.templates[0].Zone),
 	)
 
-	return a.postProcessor.exo.DeleteTemplate(ctx, *a.template.Zone, a.template)
+	return a.postProcessor.exo.DeleteTemplate(ctx, *a.templates[0].Zone, a.templates[0])
 }
 
 func (a *Artifact) Template() *egoscale.Template {
-	return a.template
+	return a.templates[0]
+}
+
+func (a *Artifact) Templates() []*egoscale.Template {
+	return a.templates
 }

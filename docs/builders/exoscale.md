@@ -21,8 +21,11 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
 - `instance_template` (string) - The name or ID of the template to use when
   creating the Compute instance.
 
-- `template_zone` (string) - The Exoscale [zone][zones] in which to create the
+- `template_zones` (list of strings) - The Exoscale [zones][zones] in which to create the
   template.
+
+- `template_zone` (string) - The Exoscale [zone][zones] in which to create the
+  template. **DEPRECATED** (use `template_zones` instead).
 
 - `template_name` (string) - The name of the template.
 
@@ -39,7 +42,8 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
   Defaults to `packer-<BUILD ID>`.
 
 - `instance_zone` (string) - The Exoscale zone in which to create the Compute
-  instance. Defaults to the value of `template_zone`.
+  instance.
+  Defaults to the first of `template_zones`.
 
 - `instance_template_visibility` (string) - The template visibility to specify
   for the `instance_template` parameter. Defaults to `public`.

@@ -19,20 +19,23 @@ const (
 )
 
 type Config struct {
-	SOSEndpoint             string `mapstructure:"sos_endpoint"`
-	APIEnvironment          string `mapstructure:"api_environment"`
-	APIKey                  string `mapstructure:"api_key"`
-	APISecret               string `mapstructure:"api_secret"`
-	APITimeout              int64  `mapstructure:"api_timeout"`
-	ImageBucket             string `mapstructure:"image_bucket"`
-	TemplateZone            string `mapstructure:"template_zone"`
-	TemplateName            string `mapstructure:"template_name"`
-	TemplateDescription     string `mapstructure:"template_description"`
-	TemplateUsername        string `mapstructure:"template_username"`
-	TemplateBootMode        string `mapstructure:"template_boot_mode"`
-	TemplateDisablePassword bool   `mapstructure:"template_disable_password"`
-	TemplateDisableSSHKey   bool   `mapstructure:"template_disable_sshkey"`
-	SkipClean               bool   `mapstructure:"skip_clean"`
+	SOSEndpoint             string   `mapstructure:"sos_endpoint"`
+	APIEnvironment          string   `mapstructure:"api_environment"`
+	APIKey                  string   `mapstructure:"api_key"`
+	APISecret               string   `mapstructure:"api_secret"`
+	APITimeout              int64    `mapstructure:"api_timeout"`
+	ImageBucket             string   `mapstructure:"image_bucket"`
+	ImageZone               string   `mapstructure:"image_zone"`
+	TemplateZones           []string `mapstructure:"template_zones"`
+	TemplateName            string   `mapstructure:"template_name"`
+	TemplateDescription     string   `mapstructure:"template_description"`
+	TemplateUsername        string   `mapstructure:"template_username"`
+	TemplateBootMode        string   `mapstructure:"template_boot_mode"`
+	TemplateDisablePassword bool     `mapstructure:"template_disable_password"`
+	TemplateDisableSSHKey   bool     `mapstructure:"template_disable_sshkey"`
+	SkipClean               bool     `mapstructure:"skip_clean"`
+	// Deprecated
+	TemplateZone            string   `mapstructure:"template_zone"`
 
 	ctx interpolate.Context
 
@@ -54,17 +57,28 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		return nil, err
 	}
 
+	// Deprecated arguments
+	// (template_zones <-> template_zone)
+	if config.TemplateZone != "" {
+		if len(config.TemplateZones) == 0 {
+			config.TemplateZones = []string{config.TemplateZone}
+		}
+		//} else {
+		//	Both template_zones and template_zone are defined; ignoring the latter
+		//}
+	}
+
 	requiredArgs := map[string]interface{}{
-		"api_key":       config.APIKey,
-		"api_secret":    config.APISecret,
-		"image_bucket":  config.ImageBucket,
-		"template_name": config.TemplateName,
-		"template_zone": config.TemplateZone,
+		"api_key":        config.APIKey,
+		"api_secret":     config.APISecret,
+		"image_bucket":   config.ImageBucket,
+		"template_name":  config.TemplateName,
+		"template_zones": config.TemplateZones,
 	}
 
 	errs := new(packer.MultiError)
 	for k, v := range requiredArgs {
-		if reflect.ValueOf(v).IsZero() {
+		if reflect.ValueOf(v).IsZero() || reflect.ValueOf(v).Len() == 0 {
 			errs = packer.MultiErrorAppend(errs, fmt.Errorf("%s must be set", k))
 		}
 	}
@@ -87,8 +101,12 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		config.TemplateBootMode = defaultTemplateBootMode
 	}
 
+	if config.ImageZone == "" {
+		config.ImageZone = config.TemplateZones[0]
+	}
+
 	if config.SOSEndpoint == "" {
-		config.SOSEndpoint = "https://sos-" + config.TemplateZone + ".exo.io"
+		config.SOSEndpoint = "https://sos-" + config.ImageZone + ".exo.io"
 	}
 
 	return &config, nil
