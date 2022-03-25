@@ -28,4 +28,4 @@ test-acc: ## Runs acceptance tests (requires valid Exoscale API credentials)
 
 .PHONY: release
 release:
-	$(MAKE) PROJECT_URL=$(PROJECT_URL) VERSION=$(VERSION) API_VERSION=$(API_VERSION) -f go.mk/public.mk $@
+	$(MAKE) PROJECT_URL=$(PROJECT_URL) VERSION=$(VERSION) API_VERSION=$(API_VERSION) -f go.mk/public.mk release-default
