@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0
+
+#### New
+
+- Allow to create a template in several zones at once
+
+#### Changes
+
+- The `template_zone` parameter has been replaced by `template_zones`.
+
 ## 0.1.3
 
 ### Bug Fixes
