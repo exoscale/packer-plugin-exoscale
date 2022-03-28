@@ -35,7 +35,7 @@ type Config struct {
 	TemplateDisableSSHKey   bool     `mapstructure:"template_disable_sshkey"`
 	SkipClean               bool     `mapstructure:"skip_clean"`
 	// Deprecated
-	TemplateZone            string   `mapstructure:"template_zone"`
+	TemplateZone string `mapstructure:"template_zone"`
 
 	ctx interpolate.Context
 

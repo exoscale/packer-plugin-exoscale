@@ -8,7 +8,7 @@ var (
 	testConfigTemplateName     = "test-packer"
 	testConfigSSHUsername      = "ubuntu"
 	// Deprecated
-	testConfigTemplateZone     = "ch-dk-2"
+	testConfigTemplateZone = "ch-dk-2"
 )
 
 func (ts *testSuite) TestNewConfig() {
@@ -44,7 +44,7 @@ func (ts *testSuite) TestNewConfigDeprecated() {
 		"template_name":     testConfigTemplateName,
 		"ssh_username":      testConfigSSHUsername,
 		// Deprecated
-		"template_zone":     testConfigTemplateZone,
+		"template_zone": testConfigTemplateZone,
 	}}...)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(config)
@@ -61,7 +61,7 @@ func (ts *testSuite) TestNewConfigDeprecated() {
 		"ssh_username":      testConfigSSHUsername,
 		"template_zones":    testConfigTemplateZones,
 		// Deprecated
-		"template_zone":     testConfigTemplateZone,
+		"template_zone": testConfigTemplateZone,
 	}}...)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(config)
