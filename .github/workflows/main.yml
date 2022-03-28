@@ -22,7 +22,7 @@ jobs:
       run: |
         sudo apt-get install -y jq
         git submodule update --init --recursive go.mk
-        PATH=$(go env GOPATH)/bin:$PATH make vendor installgolangcilint
+        PATH=$(go env GOPATH)/bin:$PATH make vendor install-golangci-lint
     - name: Lint
       run: |
         PATH=$(go env GOPATH)/bin:$PATH make lint
