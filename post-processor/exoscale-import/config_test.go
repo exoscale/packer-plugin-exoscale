@@ -13,7 +13,7 @@ var (
 	testConfigTemplateZones = []string{"ch-gva-2", "ch-dk-2"}
 	testConfigTemplateName  = "test-packer"
 	// Deprecated
-	testConfigTemplateZone  = "ch-dk-2"
+	testConfigTemplateZone = "ch-dk-2"
 )
 
 func TestNewConfig(t *testing.T) {

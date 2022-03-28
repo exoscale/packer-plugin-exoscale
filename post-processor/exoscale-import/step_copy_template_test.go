@@ -45,16 +45,16 @@ func (ts *testSuite) TestStepCopyTemplate_Run() {
 	for i := 1; i < len(testTemplateZones); i++ {
 		ts.exo.(*exoscaleClientMock).
 			On(
-			"CopyTemplate",
-			mock.Anything,        // ctx
-			testTemplateZones[0], // zone
-			mock.Anything,        // template
-			testTemplateZones[i], // target zone
-		).
+				"CopyTemplate",
+				mock.Anything,        // ctx
+				testTemplateZones[0], // zone
+				mock.Anything,        // template
+				testTemplateZones[i], // target zone
+			).
 			Run(func(args mock.Arguments) {
-			ts.Require().Equal(testTemplate, args.Get(2))
-			templateCopies++
-		}).
+				ts.Require().Equal(testTemplate, args.Get(2))
+				templateCopies++
+			}).
 			Return(testTemplate, nil)
 	}
 

@@ -15,8 +15,8 @@ type stepCopyTemplate struct {
 
 func (s *stepCopyTemplate) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	var (
-		ui            = state.Get("ui").(packer.Ui)
-		templates     = state.Get("templates").([]*egoscale.Template)
+		ui        = state.Get("ui").(packer.Ui)
+		templates = state.Get("templates").([]*egoscale.Template)
 
 		registerZone = s.postProcessor.config.TemplateZones[0]
 	)

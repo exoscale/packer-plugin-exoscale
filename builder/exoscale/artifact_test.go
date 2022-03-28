@@ -39,18 +39,18 @@ func (ts *testSuite) TestArtifact_Destroy() {
 	for i := 0; i < len(testTemplateZones); i++ {
 		ts.exo.(*exoscaleClientMock).
 			On(
-			"DeleteTemplate",
-			mock.Anything,        // ctx
-			testTemplateZones[i], // zone
-			mock.Anything,        // template
-		).
+				"DeleteTemplate",
+				mock.Anything,        // ctx
+				testTemplateZones[i], // zone
+				mock.Anything,        // template
+			).
 			Run(func(args mock.Arguments) {
-			ts.Require().Equal(testTemplatesMap[args.Get(1).(string)], args.Get(2))
-			templateDeleted++
-		}).
+				ts.Require().Equal(testTemplatesMap[args.Get(1).(string)], args.Get(2))
+				templateDeleted++
+			}).
 			Return(nil)
 	}
 
 	ts.Require().NoError(testArtifact.Destroy())
-	ts.Require().Equal(templateDeleted, 1)  // NB: DeleteTemplate needs be called only once
+	ts.Require().Equal(templateDeleted, 1) // NB: DeleteTemplate needs be called only once
 }
