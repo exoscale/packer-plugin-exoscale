@@ -2,4 +2,5 @@ main
 dist/*
 vendor
 bin
+coverage
 packer-plugin-exoscale
