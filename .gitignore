@@ -1,6 +1,7 @@
 main
-dist/*
-vendor
 bin
 coverage
+dist
+release
+vendor
 packer-plugin-exoscale
