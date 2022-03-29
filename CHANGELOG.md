@@ -1,14 +1,20 @@
 # Changelog
 
+## 0.2.1
+
+### Bug Fixes
+
+- Fix incomplete HCL2 (config) specification ([#18](https://github.com/exoscale/packer-plugin-exoscale/pull/18))
+
 ## 0.2.0
 
 #### New
 
-- Allow to create a template in several zones at once
+- Allow to create a template in several zones at once ([#15](https://github.com/exoscale/packer-plugin-exoscale/pull/15))
 
 #### Changes
 
-- The `template_zone` parameter has been replaced by `template_zones`.
+- The `template_zone` parameter has been replaced by `template_zones`
 
 ## 0.1.3
 
