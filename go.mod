@@ -3,18 +3,18 @@ module github.com/exoscale/packer-plugin-exoscale
 go 1.18
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.2.1
-	github.com/aws/aws-sdk-go-v2/config v1.1.2
-	github.com/aws/aws-sdk-go-v2/credentials v1.1.2
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.0.3
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.2.1
+	github.com/aws/aws-sdk-go-v2 v1.16.1
+	github.com/aws/aws-sdk-go-v2/config v1.15.2
+	github.com/aws/aws-sdk-go-v2/credentials v1.11.1
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.2
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.2
 	github.com/exoscale/egoscale v0.86.0
 	github.com/gofrs/uuid v4.2.0+incompatible
-	github.com/hashicorp/hcl/v2 v2.10.1
-	github.com/hashicorp/packer-plugin-sdk v0.2.5
-	github.com/rs/xid v1.2.1
+	github.com/hashicorp/hcl/v2 v2.11.1
+	github.com/hashicorp/packer-plugin-sdk v0.2.11
+	github.com/rs/xid v1.4.0
 	github.com/stretchr/testify v1.7.1
-	github.com/zclconf/go-cty v1.9.1
+	github.com/zclconf/go-cty v1.10.0
 )
 
 require (
@@ -26,13 +26,18 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-metrics v0.3.9 // indirect
 	github.com/aws/aws-sdk-go v1.40.34 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.0.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.0.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.0.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.1.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.1.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.1.2 // indirect
-	github.com/aws/smithy-go v1.2.0 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.2 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.8 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.2 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.9 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.11.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.16.2 // indirect
+	github.com/aws/smithy-go v1.11.2 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -43,7 +48,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
+	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.0 // indirect
 	github.com/hashicorp/consul/api v1.10.1 // indirect

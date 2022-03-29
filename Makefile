@@ -15,8 +15,30 @@ EXTRA_ARGS := -parallel 3 -count=1 -failfast
 include go.mk/init.mk
 include go.mk/public.mk
 
+# Packer SDK
+# REF: https://github.com/hashicorp/packer-plugin-sdk
+
+PACKER_SDK_VERSION := v0.2.11
+
+PACKER_SDK_MOD_VERSION := $(shell sed -nE 's|^\s*github.com/hashicorp/packer-plugin-sdk\s+(v[.0-9]+)$$|\1|p' go.mod)
+ifneq ($(PACKER_SDK_VERSION), $(PACKER_SDK_MOD_VERSION))
+$(warning Packer SDK versions mismatch (Makefile: $(PACKER_SDK_VERSION); go.mod: $(PACKER_SDK_MOD_VERSION)))
+endif
+
 
 ## Targets
+
+# Dependencies
+
+.PHONY: install-packer-sdc
+install-packer-sdc:  ## Packer Software Development Command (SDC)
+	'$(GO)' install github.com/hashicorp/packer-plugin-sdk/cmd/packer-sdc@$(PACKER_SDK_VERSION)
+
+# Artefacts
+
+.PHONY: generate
+generate: install-packer-sdc
+	'$(GO)' generate ./...
 
 # Tests
 

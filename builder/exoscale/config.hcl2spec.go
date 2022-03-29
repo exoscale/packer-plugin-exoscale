@@ -13,7 +13,7 @@ type FlatConfig struct {
 	APIEnvironment             *string           `mapstructure:"api_environment" cty:"api_environment" hcl:"api_environment"`
 	APIKey                     *string           `mapstructure:"api_key" cty:"api_key" hcl:"api_key"`
 	APISecret                  *string           `mapstructure:"api_secret" cty:"api_secret" hcl:"api_secret"`
-	APITimeout                 *uint64           `mapstructure:"api_timeout" cty:"api_timeout" hcl:"api_timeout"`
+	APITimeout                 *int64            `mapstructure:"api_timeout" cty:"api_timeout" hcl:"api_timeout"`
 	InstanceName               *string           `mapstructure:"instance_name" cty:"instance_name" hcl:"instance_name"`
 	InstanceZone               *string           `mapstructure:"instance_zone" cty:"instance_zone" hcl:"instance_zone"`
 	InstanceTemplate           *string           `mapstructure:"instance_template" cty:"instance_template" hcl:"instance_template"`
@@ -23,13 +23,14 @@ type FlatConfig struct {
 	InstanceSecurityGroups     []string          `mapstructure:"instance_security_groups" cty:"instance_security_groups" hcl:"instance_security_groups"`
 	InstancePrivateNetworks    []string          `mapstructure:"instance_private_networks" cty:"instance_private_networks" hcl:"instance_private_networks"`
 	InstanceSSHKey             *string           `mapstructure:"instance_ssh_key" cty:"instance_ssh_key" hcl:"instance_ssh_key"`
-	TemplateZone               *string           `mapstructure:"template_zone" cty:"template_zone" hcl:"template_zone"`
+	TemplateZones              []string          `mapstructure:"template_zones" cty:"template_zones" hcl:"template_zones"`
 	TemplateName               *string           `mapstructure:"template_name" cty:"template_name" hcl:"template_name"`
 	TemplateDescription        *string           `mapstructure:"template_description" cty:"template_description" hcl:"template_description"`
 	TemplateUsername           *string           `mapstructure:"template_username" cty:"template_username" hcl:"template_username"`
 	TemplateBootMode           *string           `mapstructure:"template_boot_mode" cty:"template_boot_mode" hcl:"template_boot_mode"`
 	TemplateDisablePassword    *bool             `mapstructure:"template_disable_password" cty:"template_disable_password" hcl:"template_disable_password"`
 	TemplateDisableSSHKey      *bool             `mapstructure:"template_disable_sshkey" cty:"template_disable_sshkey" hcl:"template_disable_sshkey"`
+	TemplateZone               *string           `mapstructure:"template_zone" cty:"template_zone" hcl:"template_zone"`
 	PackerBuildName            *string           `mapstructure:"packer_build_name" cty:"packer_build_name" hcl:"packer_build_name"`
 	PackerBuilderType          *string           `mapstructure:"packer_builder_type" cty:"packer_builder_type" hcl:"packer_builder_type"`
 	PackerCoreVersion          *string           `mapstructure:"packer_core_version" cty:"packer_core_version" hcl:"packer_core_version"`
@@ -114,13 +115,14 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"instance_security_groups":     &hcldec.AttrSpec{Name: "instance_security_groups", Type: cty.List(cty.String), Required: false},
 		"instance_private_networks":    &hcldec.AttrSpec{Name: "instance_private_networks", Type: cty.List(cty.String), Required: false},
 		"instance_ssh_key":             &hcldec.AttrSpec{Name: "instance_ssh_key", Type: cty.String, Required: false},
-		"template_zone":                &hcldec.AttrSpec{Name: "template_zone", Type: cty.String, Required: false},
+		"template_zones":               &hcldec.AttrSpec{Name: "template_zones", Type: cty.List(cty.String), Required: false},
 		"template_name":                &hcldec.AttrSpec{Name: "template_name", Type: cty.String, Required: false},
 		"template_description":         &hcldec.AttrSpec{Name: "template_description", Type: cty.String, Required: false},
 		"template_username":            &hcldec.AttrSpec{Name: "template_username", Type: cty.String, Required: false},
 		"template_boot_mode":           &hcldec.AttrSpec{Name: "template_boot_mode", Type: cty.String, Required: false},
 		"template_disable_password":    &hcldec.AttrSpec{Name: "template_disable_password", Type: cty.Bool, Required: false},
 		"template_disable_sshkey":      &hcldec.AttrSpec{Name: "template_disable_sshkey", Type: cty.Bool, Required: false},
+		"template_zone":                &hcldec.AttrSpec{Name: "template_zone", Type: cty.String, Required: false},
 		"packer_build_name":            &hcldec.AttrSpec{Name: "packer_build_name", Type: cty.String, Required: false},
 		"packer_builder_type":          &hcldec.AttrSpec{Name: "packer_builder_type", Type: cty.String, Required: false},
 		"packer_core_version":          &hcldec.AttrSpec{Name: "packer_core_version", Type: cty.String, Required: false},
