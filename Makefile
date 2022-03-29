@@ -7,6 +7,8 @@ GO_BIN_OUTPUT_NAME := packer-plugin-exoscale
 API_VERSION := $(shell go run . describe | jq -r '.api_version')
 EXTRA_ARGS := -parallel 3 -count=1 -failfast
 
+PACKER_PLUGINS_DIR := $(HOME)/.packer.d/plugins
+
 # Dependencies
 
 # Requires: https://github.com/exoscale/go.mk
@@ -53,6 +55,19 @@ test-acc: ## Runs acceptance tests (requires valid Exoscale API credentials)
 	  --tags=testacc \
 	  $(GO_TEST_EXTRA_ARGS) \
 	  $(GO_TEST_PKGS)
+
+# Install (locally)
+
+$(PACKER_PLUGINS_DIR):
+	mkdir -p '$(PACKER_PLUGINS_DIR)'
+
+.PHONY: install
+install $(PACKER_PLUGINS_DIR)/$(GO_BIN_OUTPUT_NAME): $(GO_BIN_OUTPUT_DIR)/$(GO_BIN_OUTPUT_NAME) $(PACKER_PLUGINS_DIR)
+	cp -v '$(GO_BIN_OUTPUT_DIR)/$(GO_BIN_OUTPUT_NAME)' '$(PACKER_PLUGINS_DIR)/$(GO_BIN_OUTPUT_NAME)'
+
+.PHONY: uninstall
+uninstall:
+	rm -fv "$${HOME}/.packer.d/plugins/$(GO_BIN_OUTPUT_NAME)"
 
 # Release
 
