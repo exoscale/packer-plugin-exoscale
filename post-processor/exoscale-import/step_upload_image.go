@@ -30,18 +30,18 @@ func (s *stepUploadImage) Run(ctx context.Context, state multistep.StateBag) mul
 		bucketFile = filepath.Base(imageFile)
 	)
 
-	ui.Say("Uploading template image")
+	ui.Say("Uploading template file")
 
 	f, err := os.Open(imageFile)
 	if err != nil {
-		ui.Error(fmt.Sprint(err))
+		ui.Error(fmt.Sprintf("Unable to read template file: %v", err))
 		return multistep.ActionHalt
 	}
 	defer f.Close()
 
 	fileInfo, err := f.Stat()
 	if err != nil {
-		ui.Error(fmt.Sprint(err))
+		ui.Error(fmt.Sprintf("Unable to read template file: %v", err))
 		return multistep.ActionHalt
 	}
 
@@ -51,11 +51,11 @@ func (s *stepUploadImage) Run(ctx context.Context, state multistep.StateBag) mul
 
 	hash := md5.New()
 	if _, err := io.Copy(hash, f); err != nil {
-		ui.Error(fmt.Sprintf("unable to compute template file checksum: %v", err))
+		ui.Error(fmt.Sprintf("Unable to compute template file checksum: %v", err))
 		return multistep.ActionHalt
 	}
 	if _, err := f.Seek(0, 0); err != nil {
-		ui.Error(fmt.Sprintf("unable to compute template file checksum: %v", err))
+		ui.Error(fmt.Sprintf("Unable to compute template file checksum: %v", err))
 		return multistep.ActionHalt
 	}
 
@@ -70,7 +70,7 @@ func (s *stepUploadImage) Run(ctx context.Context, state multistep.StateBag) mul
 				ACL:        s3types.ObjectCannedACLPublicRead,
 			})
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to upload template image: %v", err))
+		ui.Error(fmt.Sprintf("Unable to upload template file: %v", err))
 		return multistep.ActionHalt
 	}
 
@@ -93,7 +93,7 @@ func (s *stepUploadImage) Cleanup(state multistep.StateBag) {
 		return
 	}
 
-	ui.Say("Deleting uploaded template image")
+	ui.Say("Deleting uploaded template file")
 
 	_, err := s.postProcessor.sos.DeleteObject(context.Background(),
 		&s3.DeleteObjectInput{
@@ -101,6 +101,6 @@ func (s *stepUploadImage) Cleanup(state multistep.StateBag) {
 			Key:    aws.String(bucketFile),
 		})
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to delete template image: %v", err))
+		ui.Error(fmt.Sprintf("Unable to delete template file: %v", err))
 	}
 }

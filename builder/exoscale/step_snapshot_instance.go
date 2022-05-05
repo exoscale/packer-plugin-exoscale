@@ -19,11 +19,11 @@ func (s *stepSnapshotInstance) Run(ctx context.Context, state multistep.StateBag
 		ui       = state.Get("ui").(packer.Ui)
 	)
 
-	ui.Say("Creating Compute instance snapshot")
+	ui.Say("Creating compute instance snapshot")
 
 	snapshot, err := s.builder.exo.CreateInstanceSnapshot(ctx, s.builder.config.InstanceZone, instance)
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to create Compute instance snapshot: %v", err))
+		ui.Error(fmt.Sprintf("Unable to create compute instance snapshot: %v", err))
 		return multistep.ActionHalt
 	}
 	state.Put("snapshot", snapshot)

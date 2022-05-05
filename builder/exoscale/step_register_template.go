@@ -25,7 +25,7 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 		sshkeyEnabled   = !s.builder.config.TemplateDisableSSHKey
 	)
 
-	ui.Say(fmt.Sprintf("Registering Compute instance template (in %s)", registerZone))
+	ui.Say(fmt.Sprintf("Registering compute instance template (in %s)", registerZone))
 
 	template, err := s.builder.exo.RegisterTemplate(
 		ctx,
@@ -42,7 +42,7 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 		},
 	)
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to register template: %s", err))
+		ui.Error(fmt.Sprintf("Unable to register compute instance template: %v", err))
 		return multistep.ActionHalt
 	}
 

@@ -19,10 +19,10 @@ func (s *stepStopInstance) Run(ctx context.Context, state multistep.StateBag) mu
 		ui       = state.Get("ui").(packer.Ui)
 	)
 
-	ui.Say("Stopping Compute instance")
+	ui.Say("Stopping compute instance")
 
 	if err := s.builder.exo.StopInstance(ctx, s.builder.config.InstanceZone, instance); err != nil {
-		ui.Error(fmt.Sprintf("unable to stop instance: %v", err))
+		ui.Error(fmt.Sprintf("Unable to stop compute instance: %v", err))
 		return multistep.ActionHalt
 	}
 

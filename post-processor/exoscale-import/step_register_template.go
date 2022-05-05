@@ -25,7 +25,7 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 		sshkeyEnabled   = !s.postProcessor.config.TemplateDisableSSHKey
 	)
 
-	ui.Say(fmt.Sprintf("Registering Compute instance template (in %s)", registerZone))
+	ui.Say(fmt.Sprintf("Registering compute instance template (in %s)", registerZone))
 
 	template, err := s.postProcessor.exo.RegisterTemplate(
 		ctx,
@@ -41,7 +41,7 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 			URL:             nonEmptyStringPtr(imageURL),
 		})
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to export Compute instance snapshot: %s", err))
+		ui.Error(fmt.Sprintf("Unable to register compute instance template: %v", err))
 		return multistep.ActionHalt
 	}
 
