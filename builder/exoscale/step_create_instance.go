@@ -17,7 +17,7 @@ type stepCreateInstance struct {
 func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 
-	ui.Say("Creating Compute instance")
+	ui.Say("Creating compute instance")
 
 	instanceName := s.builder.config.InstanceName
 	if instanceName == "" {
@@ -30,7 +30,7 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 		s.builder.config.InstanceType,
 	)
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to retrieve Compute instance type: %v", err))
+		ui.Error(fmt.Sprintf("Unable to retrieve compute instance type: %v", err))
 		return multistep.ActionHalt
 	}
 
@@ -44,7 +44,7 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 			egoscale.ListTemplatesWithVisibility(s.builder.config.InstanceTemplateVisibility),
 		)
 		if err != nil {
-			ui.Error(fmt.Sprintf("unable to list Compute instance templates: %v", err))
+			ui.Error(fmt.Sprintf("Unable to list compute instance templates: %v", err))
 			return multistep.ActionHalt
 		}
 		for _, template = range templates {
@@ -55,7 +55,7 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 		}
 		if template == nil {
 			ui.Error(fmt.Sprintf(
-				"no template %q found with visibility %s in zone %s",
+				"No template %q found with visibility %s in zone %s",
 				s.builder.config.InstanceTemplate,
 				s.builder.config.InstanceTemplateVisibility,
 				s.builder.config.InstanceZone,
@@ -65,7 +65,7 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 
 		template, err = s.builder.exo.GetTemplate(ctx, s.builder.config.InstanceZone, *template.ID)
 		if err != nil {
-			ui.Error(fmt.Sprintf("unable to retrieve template: %v", err))
+			ui.Error(fmt.Sprintf("Unable to retrieve compute instance template: %v", err))
 			return multistep.ActionHalt
 		}
 	}
@@ -96,7 +96,7 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 		return ids, nil
 	}()
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to retrieve Security Groups: %v", err))
+		ui.Error(fmt.Sprintf("Unable to retrieve security groups: %v", err))
 		return multistep.ActionHalt
 	}
 	if len(securityGroupIDs) > 0 {
@@ -105,14 +105,14 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 
 	instance, err = s.builder.exo.CreateInstance(ctx, s.builder.config.InstanceZone, instance)
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to create Compute instance: %v", err))
+		ui.Error(fmt.Sprintf("Unable to create compute instance: %v", err))
 		return multistep.ActionHalt
 	}
 
 	for _, p := range s.builder.config.InstancePrivateNetworks {
 		privateNetwork, err := s.builder.exo.FindPrivateNetwork(ctx, s.builder.config.InstanceZone, p)
 		if err != nil {
-			ui.Error(fmt.Sprintf("unable to retrieve Private Network %q: %v", p, err))
+			ui.Error(fmt.Sprintf("Unable to retrieve private network %q: %v", p, err))
 			return multistep.ActionHalt
 		}
 
@@ -123,12 +123,12 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 			privateNetwork,
 		)
 		if err != nil {
-			ui.Error(fmt.Sprintf("unable to attach instance to Private Network %q: %v", p, err))
+			ui.Error(fmt.Sprintf("Unable to attach compute instance to private network %q: %v", p, err))
 			return multistep.ActionHalt
 		}
 	}
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to retrieve Private Networks: %v", err))
+		ui.Error(fmt.Sprintf("Unable to retrieve private networks: %v", err))
 		return multistep.ActionHalt
 	}
 
@@ -146,7 +146,7 @@ func (s *stepCreateInstance) Cleanup(state multistep.StateBag) {
 	ui := state.Get("ui").(packer.Ui)
 
 	if v, ok := state.GetOk("instance"); ok {
-		ui.Say("Cleanup: destroying Compute instance")
+		ui.Say("Cleanup: destroying compute instance")
 
 		ctx := exoapi.WithEndpoint(
 			context.Background(),
@@ -155,7 +155,7 @@ func (s *stepCreateInstance) Cleanup(state multistep.StateBag) {
 		instance := v.(*egoscale.Instance)
 
 		if err := s.builder.exo.DeleteInstance(ctx, s.builder.config.InstanceZone, instance); err != nil {
-			ui.Error(fmt.Sprintf("unable to delete Compute instance: %v", err))
+			ui.Error(fmt.Sprintf("Unable to delete compute instance: %v", err))
 		}
 	}
 }

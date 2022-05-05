@@ -37,13 +37,13 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 
 	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
-		ui.Error(fmt.Sprintf("error generating SSH private key: %v", err))
+		ui.Error(fmt.Sprintf("Unable to create SSH key: %v", err))
 		return multistep.ActionHalt
 	}
 
 	pair, err := sshkey.PairFromED25519(publicKey, privateKey)
 	if err != nil {
-		ui.Error(fmt.Sprintf("error creating temporary ssh key: %s", err))
+		ui.Error(fmt.Sprintf("Unable to create SSH key: %v", err))
 		return multistep.ActionHalt
 	}
 
@@ -54,7 +54,7 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 		string(pair.Public),
 	)
 	if err != nil {
-		ui.Error(fmt.Sprintf("unable to register SSH key: %v", err))
+		ui.Error(fmt.Sprintf("Unable to register SSH key: %v", err))
 		return multistep.ActionHalt
 	}
 
@@ -66,13 +66,13 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 		sshPrivateKeyFile := s.builder.config.InstanceSSHKey
 
 		if err := ioutil.WriteFile(sshPrivateKeyFile, s.builder.config.Comm.SSHPrivateKey, 0o600); err != nil {
-			ui.Error(fmt.Sprintf("unable to write SSH private key to file: %v", err))
+			ui.Error(fmt.Sprintf("Unable to write SSH private key to file: %v", err))
 			return multistep.ActionHalt
 		}
 
 		absPath, err := filepath.Abs(sshPrivateKeyFile)
 		if err != nil {
-			ui.Error(fmt.Sprintf("unable to resolve SSH private key file absolute path: %s", err))
+			ui.Error(fmt.Sprintf("Unable to resolve SSH private key file absolute path: %v", err))
 			return multistep.ActionHalt
 		}
 		state.Put("delete_ssh_private_key", absPath)
@@ -98,14 +98,14 @@ func (s *stepCreateSSHKey) Cleanup(state multistep.StateBag) {
 			s.builder.config.InstanceZone,
 			&egoscale.SSHKey{Name: &s.builder.config.InstanceSSHKey},
 		); err != nil {
-			ui.Error(fmt.Sprintf("unable to delete SSH key: %v", err))
+			ui.Error(fmt.Sprintf("Unable to delete SSH key: %v", err))
 			return
 		}
 
 		if s.builder.config.PackerDebug {
 			if sshPrivateKeyFile := state.Get("delete_ssh_private_key").(string); sshPrivateKeyFile != "" {
 				if err := os.Remove(sshPrivateKeyFile); err != nil {
-					ui.Error(fmt.Sprintf("unable to delete SSH key file: %v", err))
+					ui.Error(fmt.Sprintf("Unable to delete SSH private key file: %v", err))
 				}
 			}
 		}

@@ -24,7 +24,7 @@ func (s *stepCopyTemplate) Run(ctx context.Context, state multistep.StateBag) mu
 	for i := 1; i < len(s.builder.config.TemplateZones); i++ {
 		targetZone := s.builder.config.TemplateZones[i]
 
-		ui.Say(fmt.Sprintf("Copying Compute instance template (to %s)", targetZone))
+		ui.Say(fmt.Sprintf("Copying compute instance template (to %s)", targetZone))
 
 		template, err := s.builder.exo.CopyTemplate(
 			ctx,
@@ -33,7 +33,7 @@ func (s *stepCopyTemplate) Run(ctx context.Context, state multistep.StateBag) mu
 			targetZone,
 		)
 		if err != nil {
-			ui.Error(fmt.Sprintf("unable to copy template: %s", err))
+			ui.Error(fmt.Sprintf("Unable to copy compute instance template: %v", err))
 			return multistep.ActionHalt
 		}
 
