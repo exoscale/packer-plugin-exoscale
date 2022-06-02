@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.11.1
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.2
-	github.com/exoscale/egoscale v0.86.0
+	github.com/exoscale/egoscale v0.88.2
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/hashicorp/hcl/v2 v2.12.0
 	github.com/hashicorp/packer-plugin-sdk v0.2.13
