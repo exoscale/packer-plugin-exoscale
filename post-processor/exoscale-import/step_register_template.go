@@ -32,13 +32,16 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 		registerZone,
 		&egoscale.Template{
 			BootMode:        &s.postProcessor.config.TemplateBootMode,
+			Build:           nonEmptyStringPtr(s.postProcessor.config.TemplateBuild),
 			Checksum:        nonEmptyStringPtr(imageChecksum),
 			DefaultUser:     nonEmptyStringPtr(s.postProcessor.config.TemplateUsername),
 			Description:     nonEmptyStringPtr(s.postProcessor.config.TemplateDescription),
+			Maintainer:      nonEmptyStringPtr(s.postProcessor.config.TemplateMaintainer),
 			Name:            &s.postProcessor.config.TemplateName,
 			PasswordEnabled: &passwordEnabled,
 			SSHKeyEnabled:   &sshkeyEnabled,
 			URL:             nonEmptyStringPtr(imageURL),
+			Version:         nonEmptyStringPtr(s.postProcessor.config.TemplateVersion),
 		})
 	if err != nil {
 		ui.Error(fmt.Sprintf("Unable to register compute instance template: %v", err))

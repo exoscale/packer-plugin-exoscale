@@ -33,6 +33,9 @@ type Config struct {
 	TemplateBootMode        string   `mapstructure:"template_boot_mode"`
 	TemplateDisablePassword bool     `mapstructure:"template_disable_password"`
 	TemplateDisableSSHKey   bool     `mapstructure:"template_disable_sshkey"`
+	TemplateMaintainer      string   `mapstructure:"template_maintainer"`
+	TemplateVersion         string   `mapstructure:"template_version"`
+	TemplateBuild           string   `mapstructure:"template_build"`
 	SkipClean               bool     `mapstructure:"skip_clean"`
 	// Deprecated
 	TemplateZone string `mapstructure:"template_zone"`

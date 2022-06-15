@@ -16,6 +16,9 @@ var (
 	testAccTemplateZones       = []string{"ch-gva-2", "ch-dk-2"}
 	testAccTemplateDescription = new(testSuite).randomString(6)
 	testAccTemplateUsername    = "packer"
+	testAccTemplateMaintainer  = "Exoscale"
+	testAccTemplateVersion     = "0.acceptance"
+	testAccTemplateBuild       = new(testSuite).randomString(8)
 )
 
 func TestAccBuilder(t *testing.T) {
@@ -43,6 +46,9 @@ func TestAccBuilder(t *testing.T) {
 		"template_name":        testAccTemplateName,
 		"template_description": testAccTemplateDescription,
 		"template_username":    testAccTemplateUsername,
+		"template_maintainer":  testAccTemplateMaintainer,
+		"template_version":     testAccTemplateVersion,
+		"template_build":       testAccTemplateBuild,
 	}}...)
 	require.NoError(t, err)
 
@@ -58,6 +64,9 @@ func TestAccBuilder(t *testing.T) {
 		require.Equal(t, testAccTemplateDescription, *template.Description)
 		require.Equal(t, defaultTemplateBootMode, *template.BootMode)
 		require.Equal(t, testAccTemplateUsername, *template.DefaultUser)
+		require.Equal(t, testAccTemplateMaintainer, *template.Maintainer)
+		require.Equal(t, testAccTemplateVersion, *template.Version)
+		require.Equal(t, testAccTemplateBuild, *template.Build)
 	}
 
 	require.NoError(t, artifact.Destroy())

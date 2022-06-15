@@ -1,5 +1,11 @@
 # Changelog
 
+## next
+
+### New
+
+- Add support for Build, Maintainer and Version attributes
+
 ## 0.2.1
 
 ### Bug Fixes
@@ -8,11 +14,11 @@
 
 ## 0.2.0
 
-#### New
+### New
 
 - Allow to create a template in several zones at once ([#15](https://github.com/exoscale/packer-plugin-exoscale/pull/15))
 
-#### Changes
+### Changes
 
 - The `template_zone` parameter has been replaced by `template_zones`
 

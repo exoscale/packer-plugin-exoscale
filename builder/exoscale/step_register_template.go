@@ -32,13 +32,16 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 		registerZone,
 		&egoscale.Template{
 			BootMode:        &s.builder.config.TemplateBootMode,
+			Build:           nonEmptyStringPtr(s.builder.config.TemplateBuild),
 			Checksum:        nonEmptyStringPtr(snapshotChecksum),
 			DefaultUser:     nonEmptyStringPtr(s.builder.config.TemplateUsername),
 			Description:     nonEmptyStringPtr(s.builder.config.TemplateDescription),
+			Maintainer:      nonEmptyStringPtr(s.builder.config.TemplateMaintainer),
 			Name:            &s.builder.config.TemplateName,
 			PasswordEnabled: &passwordEnabled,
 			SSHKeyEnabled:   &sshkeyEnabled,
 			URL:             nonEmptyStringPtr(snapshotURL),
+			Version:         nonEmptyStringPtr(s.builder.config.TemplateVersion),
 		},
 	)
 	if err != nil {

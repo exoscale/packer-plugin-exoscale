@@ -24,6 +24,9 @@ type FlatConfig struct {
 	TemplateBootMode        *string           `mapstructure:"template_boot_mode" cty:"template_boot_mode" hcl:"template_boot_mode"`
 	TemplateDisablePassword *bool             `mapstructure:"template_disable_password" cty:"template_disable_password" hcl:"template_disable_password"`
 	TemplateDisableSSHKey   *bool             `mapstructure:"template_disable_sshkey" cty:"template_disable_sshkey" hcl:"template_disable_sshkey"`
+	TemplateMaintainer      *string           `mapstructure:"template_maintainer" cty:"template_maintainer" hcl:"template_maintainer"`
+	TemplateVersion         *string           `mapstructure:"template_version" cty:"template_version" hcl:"template_version"`
+	TemplateBuild           *string           `mapstructure:"template_build" cty:"template_build" hcl:"template_build"`
 	SkipClean               *bool             `mapstructure:"skip_clean" cty:"skip_clean" hcl:"skip_clean"`
 	TemplateZone            *string           `mapstructure:"template_zone" cty:"template_zone" hcl:"template_zone"`
 	PackerBuildName         *string           `mapstructure:"packer_build_name" cty:"packer_build_name" hcl:"packer_build_name"`
@@ -62,6 +65,9 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"template_boot_mode":         &hcldec.AttrSpec{Name: "template_boot_mode", Type: cty.String, Required: false},
 		"template_disable_password":  &hcldec.AttrSpec{Name: "template_disable_password", Type: cty.Bool, Required: false},
 		"template_disable_sshkey":    &hcldec.AttrSpec{Name: "template_disable_sshkey", Type: cty.Bool, Required: false},
+		"template_maintainer":        &hcldec.AttrSpec{Name: "template_maintainer", Type: cty.String, Required: false},
+		"template_version":           &hcldec.AttrSpec{Name: "template_version", Type: cty.String, Required: false},
+		"template_build":             &hcldec.AttrSpec{Name: "template_build", Type: cty.String, Required: false},
 		"skip_clean":                 &hcldec.AttrSpec{Name: "skip_clean", Type: cty.Bool, Required: false},
 		"template_zone":              &hcldec.AttrSpec{Name: "template_zone", Type: cty.String, Required: false},
 		"packer_build_name":          &hcldec.AttrSpec{Name: "packer_build_name", Type: cty.String, Required: false},
