@@ -79,9 +79,9 @@ uninstall:
 
 # Release
 
-#.PHONY: release
-#release:
-#	see release-default in go.mk/release.mk
+.PHONY: release
+release: release-precheck release-notes
+	API_VERSION='$(API_VERSION)' '$(GORELEASER)' release $(GORELEASER_OPTS)
 
 # Clean
 
