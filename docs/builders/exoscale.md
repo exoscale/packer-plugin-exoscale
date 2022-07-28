@@ -8,7 +8,7 @@ Compute instance snapshot.
 **Note:** the `exoscale` Packer plugin only supports UNIX-like operating
 systems (e.g. GNU/Linux, \*BSD...). To build Exoscale custom templates for
 other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
-[exoscale-import][exoscale-import] Packer post-processor plugin.
+[exoscale-import](/docs/post-processors/exoscale-import.md) Packer post-processor plugin.
 
 
 ### Required
@@ -111,3 +111,4 @@ build {
 
 [packerssh]: https://www.packer.io/docs/communicators/ssh/
 [zones]: https://www.exoscale.com/datacenters/
+[packerqemu]: https://www.packer.io/plugins/builders/qemu
