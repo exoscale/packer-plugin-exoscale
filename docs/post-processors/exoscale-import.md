@@ -112,8 +112,8 @@ build {
   sources = ["source.file.base"]
 
   post-processor "exoscale-import" {
-    api_key           = var.exoscale_api_key
-    api_secret        = var.exoscale_api_secret
+    api_key           = var.api_key
+    api_secret        = var.api_secret
     image_bucket      = "my-templates-${var.exoscale_zone}"
     template_zones    = [var.exoscale_zone]
     template_name     = local.image_name
