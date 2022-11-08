@@ -63,8 +63,8 @@ built locally by the [`qemu`][packer-doc-builder-qemu] builder.
 ### Example Usage
 
 ```hcl
-variable "api_key" { default = "" }
-variable "api_secret" { default = "" }
+variable "exoscale_api_key" { default = "" }
+variable "exoscale_api_secret" { default = "" }
 variable "exoscale_zone" { default = "ch-gva-2" }
 
 locals {
