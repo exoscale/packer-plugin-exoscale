@@ -84,12 +84,12 @@ into the Compute instance.
 ### Example Usage
 
 ```hcl
-variable "api_key" { default = "" }
-variable "api_secret" { default = "" }
+variable "exoscale_api_key" { default = "" }
+variable "exoscale_api_secret" { default = "" }
 
 source "exoscale" "my-app" {
-  api_key                  = var.api_key
-  api_secret               = var.api_secret
+  api_key                  = var.exoscale_api_key
+  api_secret               = var.exoscale_api_secret
   instance_template        = "Linux Ubuntu 20.04 LTS 64-bit"
   instance_security_groups = ["packer"]
   template_zone            = "ch-gva-2"
