@@ -62,6 +62,9 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
   will be created before creating the instance, and destroyed after a
   successful build.
 
+- `snapshot_download` (boolean) - Whether to download a snapshot of the compute
+  instance. Defaults to `false`.
+
 - `template_description` (string) - The description of the template.
 
 - `template_username` (string) - An optional username to be used to log into

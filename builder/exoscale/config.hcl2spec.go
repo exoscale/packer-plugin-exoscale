@@ -23,6 +23,7 @@ type FlatConfig struct {
 	InstanceSecurityGroups     []string          `mapstructure:"instance_security_groups" cty:"instance_security_groups" hcl:"instance_security_groups"`
 	InstancePrivateNetworks    []string          `mapstructure:"instance_private_networks" cty:"instance_private_networks" hcl:"instance_private_networks"`
 	InstanceSSHKey             *string           `mapstructure:"instance_ssh_key" cty:"instance_ssh_key" hcl:"instance_ssh_key"`
+	SnapshotDownload           *bool             `mapstructure:"snapshot_download" cty:"snapshot_download" hcl:"snapshot_download"`
 	TemplateZones              []string          `mapstructure:"template_zones" cty:"template_zones" hcl:"template_zones"`
 	TemplateName               *string           `mapstructure:"template_name" cty:"template_name" hcl:"template_name"`
 	TemplateDescription        *string           `mapstructure:"template_description" cty:"template_description" hcl:"template_description"`
@@ -118,6 +119,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"instance_security_groups":     &hcldec.AttrSpec{Name: "instance_security_groups", Type: cty.List(cty.String), Required: false},
 		"instance_private_networks":    &hcldec.AttrSpec{Name: "instance_private_networks", Type: cty.List(cty.String), Required: false},
 		"instance_ssh_key":             &hcldec.AttrSpec{Name: "instance_ssh_key", Type: cty.String, Required: false},
+		"snapshot_download":            &hcldec.AttrSpec{Name: "snapshot_download", Type: cty.Bool, Required: false},
 		"template_zones":               &hcldec.AttrSpec{Name: "template_zones", Type: cty.List(cty.String), Required: false},
 		"template_name":                &hcldec.AttrSpec{Name: "template_name", Type: cty.String, Required: false},
 		"template_description":         &hcldec.AttrSpec{Name: "template_description", Type: cty.String, Required: false},

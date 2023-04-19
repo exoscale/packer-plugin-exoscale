@@ -37,6 +37,7 @@ type Config struct {
 	InstanceSecurityGroups     []string `mapstructure:"instance_security_groups"`
 	InstancePrivateNetworks    []string `mapstructure:"instance_private_networks"`
 	InstanceSSHKey             string   `mapstructure:"instance_ssh_key"`
+	SnapshotDownload           bool     `mapstructure:"snapshot_download"`
 	TemplateZones              []string `mapstructure:"template_zones"`
 	TemplateName               string   `mapstructure:"template_name"`
 	TemplateDescription        string   `mapstructure:"template_description"`
