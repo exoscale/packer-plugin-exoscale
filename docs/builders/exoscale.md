@@ -62,6 +62,10 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
   will be created before creating the instance, and destroyed after a
   successful build.
 
+- `snapshot_download_path` (string) - The path on your local machine (the one
+  running Packer) to the directory where the resulting template will be
+  downloaded. Defaults to `./output`.
+
 - `snapshot_download` (boolean) - Whether to download a snapshot of the compute
   instance. Defaults to `false`.
 

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
@@ -17,8 +18,8 @@ type stepDownloadSnapshot struct {
 
 func (s *stepDownloadSnapshot) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	var (
-		snapshotURL      = state.Get("snapshot_url").(string)
 		snapshotChecksum = state.Get("snapshot_checksum").(string)
+		snapshotURL      = state.Get("snapshot_url").(string)
 		ui               = state.Get("ui").(packer.Ui)
 	)
 
@@ -27,6 +28,11 @@ func (s *stepDownloadSnapshot) Run(ctx context.Context, state multistep.StateBag
 	}
 
 	ui.Say("Downloading compute instance snapshot")
+
+	if err := os.MkdirAll(s.builder.config.SnapshotDownloadPath, 0755); err != nil {
+		ui.Error(fmt.Sprintf("Unable to create output directory for the snapshot: %v", err))
+		return multistep.ActionHalt
+	}
 
 	if err := s.downloadSnapshot(ui, snapshotURL); err != nil {
 		ui.Error(fmt.Sprintf("Unable to download compute instance snapshot: %v", err))
@@ -42,7 +48,7 @@ func (s *stepDownloadSnapshot) Run(ctx context.Context, state multistep.StateBag
 }
 
 func (s *stepDownloadSnapshot) downloadSnapshot(ui packer.Ui, snapshotURL string) error {
-	templateFile := s.builder.config.TemplateName + ".qcow2"
+	templateFile := filepath.Join(s.builder.config.SnapshotDownloadPath, s.builder.config.TemplateName+".qcow2")
 
 	out, err := os.Create(templateFile)
 	if err != nil {
@@ -72,7 +78,7 @@ func (s *stepDownloadSnapshot) downloadSnapshot(ui packer.Ui, snapshotURL string
 }
 
 func (s *stepDownloadSnapshot) createChecksumFile(snapshotChecksum string) error {
-	out, err := os.Create(s.builder.config.TemplateName + ".md5sum")
+	out, err := os.Create(filepath.Join(s.builder.config.SnapshotDownloadPath, s.builder.config.TemplateName+".md5sum"))
 	if err != nil {
 		return err
 	}
