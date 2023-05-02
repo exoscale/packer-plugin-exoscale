@@ -42,7 +42,7 @@ func (s *stepDownloadSnapshot) Run(ctx context.Context, state multistep.StateBag
 }
 
 func (s *stepDownloadSnapshot) downloadSnapshot(ui packer.Ui, snapshotURL string) error {
-	templateFile := s.builder.config.TemplateName + ".template"
+	templateFile := s.builder.config.TemplateName + ".qcow2"
 
 	out, err := os.Create(templateFile)
 	if err != nil {
@@ -72,13 +72,13 @@ func (s *stepDownloadSnapshot) downloadSnapshot(ui packer.Ui, snapshotURL string
 }
 
 func (s *stepDownloadSnapshot) createChecksumFile(snapshotChecksum string) error {
-	out, err := os.Create(s.builder.config.TemplateName + ".md5")
+	out, err := os.Create(s.builder.config.TemplateName + ".md5sum")
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	if _, err := out.WriteString(fmt.Sprintf("%s %s", snapshotChecksum, s.builder.config.TemplateName+".template")); err != nil {
+	if _, err := out.WriteString(fmt.Sprintf("%s *%s.qcow2", snapshotChecksum, s.builder.config.TemplateName)); err != nil {
 		return err
 	}
 
