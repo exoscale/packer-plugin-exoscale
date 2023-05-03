@@ -21,7 +21,7 @@ func (ts *testSuite) TestStepDownloadSnapshot_Run() {
 
 	var (
 		testConfig = Config{
-			TemplateName:         ts.randomString(10),
+			TemplateName:         testTemplateName,
 			SnapshotDownload:     testSnapshotDownload,
 			SnapshotDownloadPath: testSnapshotDownloadPath,
 		}
