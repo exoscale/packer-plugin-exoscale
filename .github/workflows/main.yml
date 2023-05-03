@@ -48,7 +48,9 @@ jobs:
       - name: Unit tests
         run: make test-verbose
       - name: Acceptance tests
-        run: make test-acc
+        run: |
+          make test-acc
+          cd /tmp/packer-plugin-test && md5sum -c *.md5sum
         env:
           EXOSCALE_API_KEY: ${{ secrets.EXOSCALE_API_KEY }}
           EXOSCALE_API_SECRET: ${{ secrets.EXOSCALE_API_SECRET }}
