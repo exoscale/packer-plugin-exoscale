@@ -4,5 +4,4 @@ coverage
 dist
 output
 release
-vendor
 packer-plugin-exoscale
