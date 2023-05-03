@@ -105,6 +105,7 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 		&stepStopInstance{builder: b},
 		&stepSnapshotInstance{builder: b},
 		&stepExportSnapshot{builder: b},
+		&stepDownloadSnapshot{builder: b},
 		&stepRegisterTemplate{builder: b},
 		&stepCopyTemplate{builder: b},
 	}

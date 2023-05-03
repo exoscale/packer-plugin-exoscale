@@ -20,6 +20,7 @@ const (
 	defaultInstanceDiskSize           int64 = 50
 	defaultInstanceSecurityGroup            = "default"
 	defaultInstanceTemplateVisibility       = "public"
+	defaultSnapshotDownloadPath             = "./output"
 	defaultTemplateBootMode                 = "legacy"
 )
 
@@ -37,6 +38,8 @@ type Config struct {
 	InstanceSecurityGroups     []string `mapstructure:"instance_security_groups"`
 	InstancePrivateNetworks    []string `mapstructure:"instance_private_networks"`
 	InstanceSSHKey             string   `mapstructure:"instance_ssh_key"`
+	SnapshotDownload           bool     `mapstructure:"snapshot_download"`
+	SnapshotDownloadPath       string   `mapstructure:"snapshot_download_path"`
 	TemplateZones              []string `mapstructure:"template_zones"`
 	TemplateName               string   `mapstructure:"template_name"`
 	TemplateDescription        string   `mapstructure:"template_description"`
@@ -137,6 +140,10 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 
 	if len(config.InstanceSecurityGroups) == 0 {
 		config.InstanceSecurityGroups = []string{defaultInstanceSecurityGroup}
+	}
+
+	if config.SnapshotDownloadPath == "" {
+		config.SnapshotDownloadPath = defaultSnapshotDownloadPath
 	}
 
 	return &config, warnings, nil
