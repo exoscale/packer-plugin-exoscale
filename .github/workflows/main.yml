@@ -1,37 +1,54 @@
+---
 name: CI
 
 on:
-  push:
+  pull_request:  # no need for 'push'; all pushes (to master) are PR-ed
     branches:
-    - '**'
+      - '**'
     paths-ignore:
-    - '**.md'
-    - '**.mdx'
+      - '**.md'
+      - '**.mdx'
     tags-ignore:
-    - 'v*' # Don't run CI tests on release tags
+      - 'v*'  # Don't run CI tests on release tags
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: true
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '^1.18'
-    - name: Install dependencies
-      run: |
-        sudo apt-get install -y jq
-        git submodule update --init --recursive go.mk
-        PATH=$(go env GOPATH)/bin:$PATH make vendor install-golangci-lint
-    - name: Lint
-      run: |
-        PATH=$(go env GOPATH)/bin:$PATH make lint
-    - name: Unit tests
-      run: |
-        PATH=$(go env GOPATH)/bin:$PATH make test-verbose
-    - name: Acceptance tests
-      run: |
-        PATH=$(go env GOPATH)/bin:$PATH make test-acc
-      env:
-        EXOSCALE_API_KEY: ${{ secrets.EXOSCALE_API_KEY }}
-        EXOSCALE_API_SECRET: ${{ secrets.EXOSCALE_API_SECRET }}
+      # Setup
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 'stable'
+          check-latest: true
+
+      # Install
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y jq
+          git submodule update --init --recursive go.mk
+          make install-golangci-lint
+
+      # Pre-check
+      - name: Lint
+        run: make lint
+      - name: Format
+        run: go fmt ./... && git diff --exit-code
+      - name: Vet
+        run: go vet ./...
+      - name: Vendoring
+        run: go mod tidy && go mod vendor && git diff --exit-code
+
+      # Build & test
+      - name: Build
+        run: make build
+      - name: Unit tests
+        run: make test-verbose
+      - name: Acceptance tests
+        run: make test-acc
+        env:
+          EXOSCALE_API_KEY: ${{ secrets.EXOSCALE_API_KEY }}
+          EXOSCALE_API_SECRET: ${{ secrets.EXOSCALE_API_SECRET }}
