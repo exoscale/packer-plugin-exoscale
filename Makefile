@@ -28,7 +28,7 @@ endif
 # Packer SDK
 # REF: https://github.com/hashicorp/packer-plugin-sdk
 
-PACKER_SDK_VERSION := v0.2.13
+PACKER_SDK_VERSION := v0.4.0
 
 PACKER_SDK_MOD_VERSION := $(shell sed -nE 's|^\s*github.com/hashicorp/packer-plugin-sdk\s+(v[.0-9]+)$$|\1|p' go.mod)
 ifneq ($(PACKER_SDK_VERSION), $(PACKER_SDK_MOD_VERSION))
