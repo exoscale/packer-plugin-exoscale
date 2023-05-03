@@ -17,7 +17,7 @@ import (
 
 var (
 	testAccSnapshotDownload     = true
-	testAccSnapshotDownloadPath = "../../output/acc" // relative to *this* file directory
+	testAccSnapshotDownloadPath = os.TempDir()
 	testAccTemplateName         = "packer-plugin-test-" + new(testSuite).randomString(6)
 	testAccTemplateZones        = []string{"ch-gva-2", "ch-dk-2"}
 	testAccTemplateDescription  = new(testSuite).randomString(6)

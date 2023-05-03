@@ -3,6 +3,7 @@ package exoscale
 import (
 	"math/rand"
 	"net"
+	"os"
 	"testing"
 	"time"
 
@@ -27,7 +28,7 @@ var (
 	testInstanceTypeName           = defaultInstanceType
 	testInstanceZone               = "ch-gva-2"
 	testSnapshotDownload           = true
-	testSnapshotDownloadPath       = "../../output/test" // relative to *this* file directory
+	testSnapshotDownloadPath       = os.TempDir()
 	testTemplateID                 = new(testSuite).randomID()
 	testTemplateName               = new(testSuite).randomString(20)
 	testTemplateZones              = []string{"ch-gva-2", "ch-dk-2"}
