@@ -34,7 +34,7 @@ func TestAccBuilder(t *testing.T) {
 	var builder Builder
 
 	if v := os.Getenv(acctest.TestEnvVar); v == "" {
-		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", acctest.TestEnvVar))
+		t.Skipf("Acceptance tests skipped unless env '%s' set", acctest.TestEnvVar)
 		return
 	}
 

@@ -14,7 +14,8 @@ import (
 
 func (ts *testSuite) TestStepDownloadSnapshot_Run() {
 	httpTestServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Write([]byte(ts.randomString(10)))
+		_, err := res.Write([]byte(ts.randomString(10)))
+		ts.Require().NoError(err)
 	}))
 	defer func() { httpTestServer.Close() }()
 
