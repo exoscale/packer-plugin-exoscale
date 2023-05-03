@@ -26,6 +26,8 @@ var (
 	testInstanceTypeID             = new(testSuite).randomID()
 	testInstanceTypeName           = defaultInstanceType
 	testInstanceZone               = "ch-gva-2"
+	testSnapshotDownload           = true
+	testSnapshotDownloadPath       = "../../output/test" // relative to *this* file directory
 	testTemplateID                 = new(testSuite).randomID()
 	testTemplateName               = new(testSuite).randomString(20)
 	testTemplateZones              = []string{"ch-gva-2", "ch-dk-2"}

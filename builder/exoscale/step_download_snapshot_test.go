@@ -21,8 +21,8 @@ func (ts *testSuite) TestStepDownloadSnapshot_Run() {
 	var (
 		testConfig = Config{
 			TemplateName:         ts.randomString(10),
-			SnapshotDownload:     true,
-			SnapshotDownloadPath: defaultSnapshotDownloadPath,
+			SnapshotDownload:     testSnapshotDownload,
+			SnapshotDownloadPath: testSnapshotDownloadPath,
 		}
 		testSnapshotChecksum     = ts.randomString(32)
 		testSnapshotPresignedURL = httpTestServer.URL

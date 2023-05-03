@@ -2,8 +2,12 @@ package exoscale
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/hashicorp/packer-plugin-sdk/acctest"
@@ -12,13 +16,18 @@ import (
 )
 
 var (
-	testAccTemplateName        = "packer-plugin-test-" + new(testSuite).randomString(6)
-	testAccTemplateZones       = []string{"ch-gva-2", "ch-dk-2"}
-	testAccTemplateDescription = new(testSuite).randomString(6)
-	testAccTemplateUsername    = "packer"
-	testAccTemplateMaintainer  = "Exoscale"
-	testAccTemplateVersion     = "0.acceptance"
-	testAccTemplateBuild       = new(testSuite).randomString(8)
+	testAccSnapshotDownload     = true
+	testAccSnapshotDownloadPath = "../../output/acc" // relative to *this* file directory
+	testAccTemplateName         = "packer-plugin-test-" + new(testSuite).randomString(6)
+	testAccTemplateZones        = []string{"ch-gva-2", "ch-dk-2"}
+	testAccTemplateDescription  = new(testSuite).randomString(6)
+	testAccTemplateUsername     = "packer"
+	testAccTemplateMaintainer   = "Exoscale"
+	testAccTemplateVersion      = "0.acceptance"
+	testAccTemplateBuild        = new(testSuite).randomString(8)
+
+	testAccSnapshotDownloadFile = filepath.Join(testAccSnapshotDownloadPath, testAccTemplateName+".qcow2")
+	testAccSnapshotChecksumFile = filepath.Join(testAccSnapshotDownloadPath, testAccTemplateName+".md5sum")
 )
 
 func TestAccBuilder(t *testing.T) {
@@ -38,9 +47,12 @@ func TestAccBuilder(t *testing.T) {
 		"api_key":    os.Getenv("EXOSCALE_API_KEY"),
 		"api_secret": os.Getenv("EXOSCALE_API_SECRET"),
 
-		"instance_template":  "Linux Ubuntu 20.04 LTS 64-bit",
+		"instance_template":  "Linux Ubuntu 22.04 LTS 64-bit",
 		"instance_disk_size": 10,
 		"ssh_username":       "ubuntu",
+
+		"snapshot_download":      testAccSnapshotDownload,
+		"snapshot_download_path": testAccSnapshotDownloadPath,
 
 		"template_zones":       testAccTemplateZones,
 		"template_name":        testAccTemplateName,
@@ -69,5 +81,31 @@ func TestAccBuilder(t *testing.T) {
 		require.Equal(t, testAccTemplateBuild, *template.Build)
 	}
 
+	require.FileExists(t, testAccSnapshotDownloadFile)
+	require.FileExists(t, testAccSnapshotChecksumFile)
+	md5sumContent, err := os.ReadFile(testAccSnapshotChecksumFile)
+	require.NoError(t, err)
+	md5sumActual, err := md5sum(testAccSnapshotDownloadFile)
+	require.NoError(t, err)
+	require.Equal(t, fmt.Sprintf("%s *%s.qcow2", md5sumActual, testAccTemplateName), string(md5sumContent))
+	// Leave this material be in the download path
+
 	require.NoError(t, artifact.Destroy())
+}
+
+func md5sum(filePath string) (string, error) {
+	var md5sum string
+	file, err := os.Open(filePath)
+	if err != nil {
+		return md5sum, err
+	}
+	defer file.Close()
+
+	hash := md5.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return md5sum, err
+	}
+	hashBytes := hash.Sum(nil)[:16]
+	md5sum = hex.EncodeToString(hashBytes)
+	return md5sum, nil
 }
