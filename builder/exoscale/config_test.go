@@ -1,12 +1,14 @@
 package exoscale
 
 var (
-	testConfigAPIKey           = "EXOabcdef0123456789abcdef01"
-	testConfigAPISecret        = "ABCDEFGHIJKLMNOPRQSTUVWXYZ0123456789abcdefg"
-	testConfigInstanceTemplate = "Linux Ubuntu 20.04 LTS 64-bit"
-	testConfigTemplateZones    = []string{"ch-gva-2", "ch-dk-2"}
-	testConfigTemplateName     = "test-packer"
-	testConfigSSHUsername      = "ubuntu"
+	testConfigAPIKey               = "EXOabcdef0123456789abcdef01"
+	testConfigAPISecret            = "ABCDEFGHIJKLMNOPRQSTUVWXYZ0123456789abcdefg"
+	testConfigInstanceTemplate     = "Linux Ubuntu 20.04 LTS 64-bit"
+	testConfigSnapshotDownload     = true
+	testConfigSnapshotDownloadPath = "./output.test"
+	testConfigTemplateZones        = []string{"ch-gva-2", "ch-dk-2"}
+	testConfigTemplateName         = "test-packer"
+	testConfigSSHUsername          = "ubuntu"
 	// Deprecated
 	testConfigTemplateZone = "ch-dk-2"
 )
@@ -17,12 +19,14 @@ func (ts *testSuite) TestNewConfig() {
 
 	config, _, err := NewConfig([]interface{}{map[string]interface{}{
 		// Minimal configuration
-		"api_key":           testConfigAPIKey,
-		"api_secret":        testConfigAPISecret,
-		"instance_template": testConfigInstanceTemplate,
-		"template_name":     testConfigTemplateName,
-		"template_zones":    testConfigTemplateZones,
-		"ssh_username":      testConfigSSHUsername,
+		"api_key":                testConfigAPIKey,
+		"api_secret":             testConfigAPISecret,
+		"instance_template":      testConfigInstanceTemplate,
+		"snapshot_download":      testConfigSnapshotDownload,
+		"snapshot_download_path": testConfigSnapshotDownloadPath,
+		"template_name":          testConfigTemplateName,
+		"template_zones":         testConfigTemplateZones,
+		"ssh_username":           testConfigSSHUsername,
 	}}...)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(config)
@@ -31,6 +35,8 @@ func (ts *testSuite) TestNewConfig() {
 	ts.Require().Equal(defaultInstanceDiskSize, config.InstanceDiskSize)
 	ts.Require().Equal([]string{defaultInstanceSecurityGroup}, config.InstanceSecurityGroups)
 	ts.Require().Equal(defaultInstanceTemplateVisibility, config.InstanceTemplateVisibility)
+	ts.Require().Equal(testConfigSnapshotDownload, config.SnapshotDownload)
+	ts.Require().Equal(testConfigSnapshotDownloadPath, config.SnapshotDownloadPath)
 	ts.Require().Equal(testConfigTemplateZones[0], config.InstanceZone)
 	ts.Require().Equal(defaultTemplateBootMode, config.TemplateBootMode)
 }

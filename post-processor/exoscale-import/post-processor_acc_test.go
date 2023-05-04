@@ -2,7 +2,6 @@ package exoscaleimport
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -41,7 +40,7 @@ func TestAccPostProcessor(t *testing.T) {
 	var postProcessor PostProcessor
 
 	if v := os.Getenv(acctest.TestEnvVar); v == "" {
-		t.Skip(fmt.Sprintf("Acceptance tests skipped unless env '%s' set", acctest.TestEnvVar))
+		t.Skipf("Acceptance tests skipped unless env '%s' set", acctest.TestEnvVar)
 		return
 	}
 

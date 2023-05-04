@@ -5,7 +5,6 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -65,7 +64,7 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 	if s.builder.config.PackerDebug {
 		sshPrivateKeyFile := s.builder.config.InstanceSSHKey
 
-		if err := ioutil.WriteFile(sshPrivateKeyFile, s.builder.config.Comm.SSHPrivateKey, 0o600); err != nil {
+		if err := os.WriteFile(sshPrivateKeyFile, s.builder.config.Comm.SSHPrivateKey, 0o600); err != nil {
 			ui.Error(fmt.Sprintf("Unable to write SSH private key to file: %v", err))
 			return multistep.ActionHalt
 		}

@@ -89,8 +89,8 @@ func (p *PostProcessor) PostProcess(
 		ctx,
 		awsconfig.WithRegion(p.config.ImageZone),
 
-		awsconfig.WithEndpointResolver(aws.EndpointResolverFunc(
-			func(service, region string) (aws.Endpoint, error) {
+		awsconfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
+			func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 				return aws.Endpoint{
 					URL:           p.config.SOSEndpoint,
 					SigningRegion: p.config.ImageZone,

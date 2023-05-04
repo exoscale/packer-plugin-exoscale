@@ -3,6 +3,8 @@ package exoscale
 import (
 	"math/rand"
 	"net"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -26,8 +28,10 @@ var (
 	testInstanceTypeID             = new(testSuite).randomID()
 	testInstanceTypeName           = defaultInstanceType
 	testInstanceZone               = "ch-gva-2"
+	testSnapshotDownload           = true
+	testSnapshotDownloadPath       = filepath.Join(os.TempDir(), "packer-plugin-test-"+new(testSuite).randomString(6))
 	testTemplateID                 = new(testSuite).randomID()
-	testTemplateName               = new(testSuite).randomString(20)
+	testTemplateName               = "packer-plugin-test-" + new(testSuite).randomString(6)
 	testTemplateZones              = []string{"ch-gva-2", "ch-dk-2"}
 
 	testSeededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
