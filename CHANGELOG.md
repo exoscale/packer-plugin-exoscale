@@ -1,10 +1,16 @@
 # Changelog
 
+## 0.3.1
+
+### New
+
+- Add support for downloading an exported instance snapshot ([#27](https://github.com/exoscale/packer-plugin-exoscale/pull/27), thanks to [sternik](https://github.com/sternik))
+
 ## 0.3.0
 
 ### New
 
-- Add support for Build, Maintainer and Version attributes
+- Add support for Build, Maintainer and Version attributes ([#23](https://github.com/exoscale/packer-plugin-exoscale/pull/23))
 
 ## 0.2.1
 
