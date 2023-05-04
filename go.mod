@@ -10,11 +10,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.33.0
 	github.com/exoscale/egoscale v0.100.1
 	github.com/gofrs/uuid v4.4.0+incompatible
-	github.com/hashicorp/hcl/v2 v2.16.2
+	github.com/hashicorp/hcl/v2 v2.13.0 // Not 2.16.2; https://github.com/hashicorp/packer-plugin-sdk/issues/135
 	github.com/hashicorp/packer-plugin-sdk v0.4.0
 	github.com/rs/xid v1.5.0
 	github.com/stretchr/testify v1.8.2
-	github.com/zclconf/go-cty v1.13.1
+	github.com/zclconf/go-cty v1.10.0 // Not 1.13.1; https://github.com/hashicorp/packer-plugin-sdk/issues/135
 )
 
 require (
