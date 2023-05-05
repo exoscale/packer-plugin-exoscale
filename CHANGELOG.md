@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+### Bug fixes
+
+- Fix `panic: ConfigSpec failed: gob: type cty.Type has no exported fields` ([#29](https://github.com/exoscale/packer-plugin-exoscale/pull/29))
+
 ## 0.3.1
 
 ### New
