@@ -10,6 +10,7 @@ on:
       - '**.mdx'
     tags-ignore:
       - 'v*'  # Don't run CI tests on release tags
+    types: [opened, synchronize]
 
 jobs:
   test:
