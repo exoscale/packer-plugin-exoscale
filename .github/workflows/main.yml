@@ -20,10 +20,13 @@ jobs:
     steps:
       # Setup
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - name: Checkout go.mk
+        uses: actions/checkout@v3
         with:
-          go-version: 'stable'
-          check-latest: true
+          repository: exoscale/go.mk
+          path: go.mk
+      - name: Run custom action from subrepository
+        uses: ./go.mk/.github/actions/setup/action.yaml
 
       # Install
       - name: Install dependencies
