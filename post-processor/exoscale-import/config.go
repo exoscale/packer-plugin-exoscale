@@ -66,9 +66,9 @@ func NewConfig(raws ...interface{}) (*Config, error) {
 		if len(config.TemplateZones) == 0 {
 			config.TemplateZones = []string{config.TemplateZone}
 		}
-		//} else {
-		//	Both template_zones and template_zone are defined; ignoring the latter
-		//}
+		// } else {
+		//	 Both template_zones and template_zone are defined; ignoring the latter
+		// }
 	}
 
 	requiredArgs := map[string]interface{}{
