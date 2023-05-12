@@ -24,7 +24,7 @@ jobs:
         run: |
           git submodule update --init --recursive go.mk
       - name: Run custom action from subrepository
-        uses: ./go.mk/.github/actions/setup/action.yaml
+        uses: ./go.mk/.github/actions/setup
 
       # Install
       - name: Install dependencies
