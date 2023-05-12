@@ -24,20 +24,7 @@ jobs:
         run: git submodule update --init --recursive go.mk
       - uses: ./go.mk/.github/actions/setup
 
-      # Install
-      #- name: Install dependencies
-      #  run: |
-      #    sudo apt-get install -y jq
-
-      # Pre-check
-      - name: Lint
-        run: make lint
-      - name: Format
-        run: go fmt ./... && git diff --exit-code
-      - name: Vet
-        run: go vet ./...
-      - name: Vendoring
-        run: go mod tidy && go mod vendor && git diff --exit-code
+      - uses: ./go.mk/.github/actions/pre-check
 
       # Build & test
       - name: Build
