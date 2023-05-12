@@ -25,8 +25,11 @@ jobs:
         with:
           repository: exoscale/go.mk
           path: go.mk
+          # TODO set to master once it's merged
+          ref: sauterp/sc-46245/standardize-ci
       - name: Run custom action from subrepository
         uses: ./go.mk/.github/actions/setup/action.yaml
+                go.mk/.github/actions/setup
 
       # Install
       - name: Install dependencies
