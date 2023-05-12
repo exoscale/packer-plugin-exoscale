@@ -21,21 +21,15 @@ jobs:
       # Setup
       - uses: actions/checkout@v3
       - name: Checkout go.mk
-        uses: actions/checkout@v3
-        with:
-          repository: exoscale/go.mk
-          path: go.mk
-          # TODO set to master once it's merged
-          ref: sauterp/sc-46245/standardize-ci
+        run: |
+          git submodule update --init --recursive go.mk
       - name: Run custom action from subrepository
         uses: ./go.mk/.github/actions/setup/action.yaml
-                go.mk/.github/actions/setup
 
       # Install
       - name: Install dependencies
         run: |
           sudo apt-get install -y jq
-          git submodule update --init --recursive go.mk
           make install-golangci-lint
 
       # Pre-check
