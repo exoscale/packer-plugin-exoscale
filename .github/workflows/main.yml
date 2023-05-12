@@ -21,16 +21,13 @@ jobs:
       # Setup
       - uses: actions/checkout@v3
       - name: Checkout go.mk
-        run: |
-          git submodule update --init --recursive go.mk
-      - name: Run custom action from subrepository
-        uses: ./go.mk/.github/actions/setup
+        run: git submodule update --init --recursive go.mk
+      - uses: ./go.mk/.github/actions/setup
 
       # Install
-      - name: Install dependencies
-        run: |
-          sudo apt-get install -y jq
-          make install-golangci-lint
+      #- name: Install dependencies
+      #  run: |
+      #    sudo apt-get install -y jq
 
       # Pre-check
       - name: Lint
