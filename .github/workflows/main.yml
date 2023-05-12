@@ -18,7 +18,6 @@ jobs:
     strategy:
       fail-fast: true
     steps:
-      # Setup
       - uses: actions/checkout@v3
       - name: Checkout go.mk
         run: git submodule update --init --recursive go.mk
@@ -26,7 +25,6 @@ jobs:
 
       - uses: ./go.mk/.github/actions/pre-check
 
-      # Build & test
       - name: Build
         run: make build
       - name: Unit tests
