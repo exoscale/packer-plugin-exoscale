@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/packer-plugin-sdk/multistep"
+
 	egoscale "github.com/exoscale/egoscale/v2"
 	exoapi "github.com/exoscale/egoscale/v2/api"
-	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
 const BuilderId = "packer.post-processor.exoscale-import"

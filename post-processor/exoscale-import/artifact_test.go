@@ -1,8 +1,9 @@
 package exoscaleimport
 
 import (
-	egoscale "github.com/exoscale/egoscale/v2"
 	"github.com/stretchr/testify/mock"
+
+	egoscale "github.com/exoscale/egoscale/v2"
 )
 
 func (ts *testSuite) TestArtifact_Destroy() {

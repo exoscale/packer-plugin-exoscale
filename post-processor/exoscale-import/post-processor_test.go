@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
-	egoscale "github.com/exoscale/egoscale/v2"
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/stretchr/testify/suite"
+
+	egoscale "github.com/exoscale/egoscale/v2"
 )
 
 var (

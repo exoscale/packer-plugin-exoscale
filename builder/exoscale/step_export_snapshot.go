@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	egoscale "github.com/exoscale/egoscale/v2"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
+
+	egoscale "github.com/exoscale/egoscale/v2"
 )
 
 type stepExportSnapshot struct {

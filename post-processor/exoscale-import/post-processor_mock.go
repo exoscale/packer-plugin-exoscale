@@ -4,8 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	egoscale "github.com/exoscale/egoscale/v2"
 	"github.com/stretchr/testify/mock"
+
+	egoscale "github.com/exoscale/egoscale/v2"
 )
 
 type exoscaleClientMock struct {

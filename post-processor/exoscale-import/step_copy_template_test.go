@@ -3,10 +3,11 @@ package exoscaleimport
 import (
 	"context"
 
-	egoscale "github.com/exoscale/egoscale/v2"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/stretchr/testify/mock"
+
+	egoscale "github.com/exoscale/egoscale/v2"
 )
 
 func (ts *testSuite) TestStepCopyTemplate_Run() {
