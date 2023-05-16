@@ -7,6 +7,7 @@ import (
 
 	egoscale "github.com/exoscale/egoscale/v2"
 	exoapi "github.com/exoscale/egoscale/v2/api"
+
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
@@ -52,7 +53,7 @@ func (a *Artifact) State(name string) interface{} {
 }
 
 func (a *Artifact) Destroy() error {
-	// Nota Bene: a single DeleteTemplate deletes a given template (ID) accross ALL zones [sc-37437]
+	// Nota Bene: a single DeleteTemplate deletes a given template (ID) across ALL zones [sc-37437]
 	// (iow. templates created in additional zones by CopyTemplate are deleted too)
 	ctx := exoapi.WithEndpoint(
 		context.Background(),
