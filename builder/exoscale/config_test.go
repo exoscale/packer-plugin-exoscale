@@ -46,7 +46,7 @@ func (ts *testSuite) TestNewConfig() {
 	ts.Require().Equal(defaultTemplateBootMode, config.TemplateBootMode)
 	ts.Require().Equal(testConfigUserData, config.UserData)
 
-	config, _, err = NewConfig([]interface{}{map[string]interface{}{
+	_, _, err = NewConfig([]interface{}{map[string]interface{}{
 		// Minimal configuration
 		"api_key":           testConfigAPIKey,
 		"api_secret":        testConfigAPISecret,
