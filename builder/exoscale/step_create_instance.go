@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	egoscale "github.com/exoscale/egoscale/v2"
 	exoapi "github.com/exoscale/egoscale/v2/api"
@@ -108,7 +108,7 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 
 	userData := s.builder.config.UserData
 	if s.builder.config.UserDataFile != "" {
-		contents, err := ioutil.ReadFile(s.builder.config.UserDataFile)
+		contents, err := os.ReadFile(s.builder.config.UserDataFile)
 		if err != nil {
 			ui.Error(fmt.Sprintf("Unable to read user data file: %v", err))
 			return multistep.ActionHalt
