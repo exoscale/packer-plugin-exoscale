@@ -4,6 +4,7 @@ package exoscale
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/hashicorp/hcl/v2/hcldec"
@@ -50,6 +51,8 @@ type Config struct {
 	TemplateMaintainer         string   `mapstructure:"template_maintainer"`
 	TemplateVersion            string   `mapstructure:"template_version"`
 	TemplateBuild              string   `mapstructure:"template_build"`
+	UserData                   string   `mapstructure:"user_data"`
+	UserDataFile               string   `mapstructure:"user_data_file"`
 	// Deprecated
 	TemplateZone string `mapstructure:"template_zone"`
 
@@ -99,6 +102,14 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	for k, v := range requiredArgs {
 		if reflect.ValueOf(v).IsZero() || reflect.ValueOf(v).Len() == 0 {
 			errs = packer.MultiErrorAppend(errs, fmt.Errorf("%s must be set", k))
+		}
+	}
+
+	if config.UserData != "" && config.UserDataFile != "" {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Only one of user_data or user_data_file can be specified."))
+	} else if config.UserDataFile != "" {
+		if _, err := os.Stat(config.UserDataFile); err != nil {
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("user_data_file not found: %s", config.UserDataFile))
 		}
 	}
 

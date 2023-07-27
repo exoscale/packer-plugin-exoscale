@@ -1,5 +1,7 @@
 package exoscale
 
+import "os"
+
 var (
 	testConfigAPIKey               = "EXOabcdef0123456789abcdef01"
 	testConfigAPISecret            = "ABCDEFGHIJKLMNOPRQSTUVWXYZ0123456789abcdefg"
@@ -9,6 +11,8 @@ var (
 	testConfigTemplateZones        = []string{"ch-gva-2", "ch-dk-2"}
 	testConfigTemplateName         = "test-packer"
 	testConfigSSHUsername          = "ubuntu"
+	testConfigUserData             = "sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config"
+	testConfigUserDataFile         = "disable_ssh_password_auth.sh"
 	// Deprecated
 	testConfigTemplateZone = "ch-dk-2"
 )
@@ -27,6 +31,7 @@ func (ts *testSuite) TestNewConfig() {
 		"template_name":          testConfigTemplateName,
 		"template_zones":         testConfigTemplateZones,
 		"ssh_username":           testConfigSSHUsername,
+		"user_data":              testConfigUserData,
 	}}...)
 	ts.Require().NoError(err)
 	ts.Require().NotNil(config)
@@ -39,6 +44,38 @@ func (ts *testSuite) TestNewConfig() {
 	ts.Require().Equal(testConfigSnapshotDownloadPath, config.SnapshotDownloadPath)
 	ts.Require().Equal(testConfigTemplateZones[0], config.InstanceZone)
 	ts.Require().Equal(defaultTemplateBootMode, config.TemplateBootMode)
+	ts.Require().Equal(testConfigUserData, config.UserData)
+
+	_, _, err = NewConfig([]interface{}{map[string]interface{}{
+		// Minimal configuration
+		"api_key":           testConfigAPIKey,
+		"api_secret":        testConfigAPISecret,
+		"instance_template": testConfigInstanceTemplate,
+		"template_name":     testConfigTemplateName,
+		"template_zones":    testConfigTemplateZones,
+		"ssh_username":      testConfigSSHUsername,
+		"user_data":         testConfigUserData,
+		"user_data_file":    testConfigUserDataFile,
+	}}...)
+	ts.Require().ErrorContains(err, "Only one of user_data or user_data_file can be specified.")
+
+	tmpFile, err := os.CreateTemp(os.TempDir(), testConfigUserDataFile)
+	ts.Require().NoError(err, "unable to create temporary file")
+	ts.Require().NoError(tmpFile.Close())
+	ts.Require().FileExists(tmpFile.Name())
+
+	config, _, err = NewConfig([]interface{}{map[string]interface{}{
+		// Minimal configuration
+		"api_key":           testConfigAPIKey,
+		"api_secret":        testConfigAPISecret,
+		"instance_template": testConfigInstanceTemplate,
+		"template_name":     testConfigTemplateName,
+		"template_zones":    testConfigTemplateZones,
+		"ssh_username":      testConfigSSHUsername,
+		"user_data_file":    tmpFile.Name(),
+	}}...)
+	ts.Require().NoError(err)
+	ts.Require().Equal(tmpFile.Name(), config.UserDataFile)
 }
 
 func (ts *testSuite) TestNewConfigDeprecated() {

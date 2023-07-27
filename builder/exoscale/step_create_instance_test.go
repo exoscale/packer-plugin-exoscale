@@ -2,6 +2,7 @@ package exoscale
 
 import (
 	"context"
+	"os"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
@@ -27,6 +28,14 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 		instanceCreated                bool
 		instancePrivateNetworkAttached bool
 	)
+
+	tmpUserDataFile, err := os.CreateTemp(os.TempDir(), testUserDataFile)
+	ts.Require().NoError(err, "unable to create temporary userdata file")
+	ts.Require().FileExists(tmpUserDataFile.Name())
+	_, err = tmpUserDataFile.WriteString(testUserData)
+	ts.Require().NoError(err)
+	ts.Require().NoError(tmpUserDataFile.Close())
+	testConfig.UserDataFile = tmpUserDataFile.Name()
 
 	testInstance := &egoscale.Instance{
 		ID:              &testInstanceID,
@@ -99,6 +108,7 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 					SSHKey:           &testConfig.InstanceSSHKey,
 					SecurityGroupIDs: &[]string{testInstanceSecurityGroupID},
 					TemplateID:       &testTemplateID,
+					UserData:         &testUserDataBase64,
 				},
 				args.Get(2))
 			instanceCreated = true

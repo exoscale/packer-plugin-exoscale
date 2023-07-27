@@ -1,6 +1,7 @@
 package exoscale
 
 import (
+	"encoding/base64"
 	"math/rand"
 	"net"
 	"os"
@@ -34,6 +35,9 @@ var (
 	testTemplateID                 = new(testSuite).randomID()
 	testTemplateName               = "packer-plugin-test-" + new(testSuite).randomString(6)
 	testTemplateZones              = []string{"ch-gva-2", "ch-dk-2"}
+	testUserData                   = "echo test > /etc/test.txt"
+	testUserDataBase64             = base64.StdEncoding.EncodeToString([]byte(testUserData))
+	testUserDataFile               = "userdata.txt"
 
 	testSeededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 )

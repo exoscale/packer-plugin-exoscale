@@ -2,7 +2,9 @@ package exoscale
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"os"
 
 	egoscale "github.com/exoscale/egoscale/v2"
 	exoapi "github.com/exoscale/egoscale/v2/api"
@@ -102,6 +104,26 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 	}
 	if len(securityGroupIDs) > 0 {
 		instance.SecurityGroupIDs = &securityGroupIDs
+	}
+
+	userData := s.builder.config.UserData
+	if s.builder.config.UserDataFile != "" {
+		contents, err := os.ReadFile(s.builder.config.UserDataFile)
+		if err != nil {
+			ui.Error(fmt.Sprintf("Unable to read user data file: %v", err))
+			return multistep.ActionHalt
+		}
+
+		userData = string(contents)
+	}
+
+	if userData != "" {
+		// Test if it is encoded already, and if not, encode it
+		if _, err := base64.StdEncoding.DecodeString(userData); err != nil {
+			userData = base64.StdEncoding.EncodeToString([]byte(userData))
+		}
+
+		instance.UserData = &userData
 	}
 
 	instance, err = s.builder.exo.CreateInstance(ctx, s.builder.config.InstanceZone, instance)

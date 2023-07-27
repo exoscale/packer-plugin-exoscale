@@ -83,6 +83,13 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
 - `template_disable_sshkey` (boolean) - Whether the template should disable
   SSH key installation during Compute instance creation. Defaults to `false`.
 
+- `user_data` (string) - User data to apply when launching the instance. Note
+  that you need to be careful about escaping characters due to the templates
+  being JSON. See [documentation][cloudinit] to learn more about user data.
+
+- `user_data_file` (string) - The path to a file that will be used for the user
+  data when launching the instance.
+
 In addition to plugin-specific configuration parameters, you can also adjust
 the [SSH communicator][packerssh] settings to configure how Packer will log
 into the Compute instance.
@@ -119,3 +126,4 @@ build {
 [packerssh]: https://www.packer.io/docs/communicators/ssh/
 [zones]: https://www.exoscale.com/datacenters/
 [packerqemu]: https://www.packer.io/plugins/builders/qemu
+[cloudinit]: https://community.exoscale.com/documentation/compute/cloud-init/
