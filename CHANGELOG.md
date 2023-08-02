@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+### New
+
+- Add support for user-data when launching instance ([#33](https://github.com/exoscale/packer-plugin-exoscale/pull/33))
+- go.mk: standardize CI with other Go repos ([#32](https://github.com/exoscale/packer-plugin-exoscale/pull/32/))
+
 ## 0.3.2
 
 ### Bug fixes
