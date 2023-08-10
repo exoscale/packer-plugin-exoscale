@@ -52,7 +52,9 @@ other OS, we recommend using the [QEMU][packerqemu] plugin combined with the
   to create. Defaults to `50`.
 
 - `instance_security_groups` (list of strings) - List of Security Groups
-  (names) to apply to the Compute instance. Defaults to `["default"]`.
+  (names) to apply to the Compute instance. Defaults to `["default"]`. Note that
+  the Security Groups need to allow Ingress on port 22, or the Packer build
+  will fail.
 
 - `instance_private_networks` (list of strings) - List of Private Networks
   (names) to attach to the Compute instance.
@@ -106,7 +108,7 @@ source "exoscale" "my-app" {
   api_secret               = var.exoscale_api_secret
   instance_template        = "Linux Ubuntu 20.04 LTS 64-bit"
   instance_security_groups = ["packer"]
-  template_zone            = "ch-gva-2"
+  template_zones           = ["ch-gva-2"]
   template_name            = "my-app"
   template_username        = "ubuntu"
   ssh_username             = "ubuntu"
