@@ -1,5 +1,9 @@
 # Changelog
 
+## UNRELEASED
+
+- automate release with Exoscale Tooling GPG key #36
+
 ## 0.4.0
 
 ### New
