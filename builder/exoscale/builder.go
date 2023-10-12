@@ -41,6 +41,7 @@ type exoscaleClient interface {
 	FindPrivateNetwork(context.Context, string, string) (*egoscale.PrivateNetwork, error)
 	FindSecurityGroup(context.Context, string, string) (*egoscale.SecurityGroup, error)
 	GetTemplate(context.Context, string, string) (*egoscale.Template, error)
+	GetTemplateByName(context.Context, string, string, string) (*egoscale.Template, error)
 	ListTemplates(context.Context, string, ...egoscale.ListTemplatesOpt) ([]*egoscale.Template, error)
 	RegisterSSHKey(context.Context, string, string, string) (*egoscale.SSHKey, error)
 	RegisterTemplate(context.Context, string, *egoscale.Template) (*egoscale.Template, error)

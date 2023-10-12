@@ -15,15 +15,16 @@ import (
 func (ts *testSuite) TestStepCreateInstance_Run() {
 	var (
 		testConfig = Config{
-			InstanceDiskSize:        defaultInstanceDiskSize,
-			InstanceName:            testInstanceName,
-			InstanceSSHKey:          ts.randomID(),
-			InstanceSecurityGroups:  []string{testInstanceSecurityGroupName},
-			InstancePrivateNetworks: []string{testInstancePrivateNetworkName},
-			InstanceTemplate:        testTemplateName,
-			InstanceType:            testInstanceTypeName,
-			InstanceZone:            testInstanceZone,
-			TemplateZones:           testTemplateZones,
+			InstanceDiskSize:           defaultInstanceDiskSize,
+			InstanceName:               testInstanceName,
+			InstanceSSHKey:             ts.randomID(),
+			InstanceSecurityGroups:     []string{testInstanceSecurityGroupName},
+			InstancePrivateNetworks:    []string{testInstancePrivateNetworkName},
+			InstanceTemplate:           testTemplateName,
+			InstanceTemplateVisibility: defaultInstanceTemplateVisibility,
+			InstanceType:               testInstanceTypeName,
+			InstanceZone:               testInstanceZone,
+			TemplateZones:              testTemplateZones,
 		}
 		instanceCreated                bool
 		instancePrivateNetworkAttached bool
@@ -65,22 +66,12 @@ func (ts *testSuite) TestStepCreateInstance_Run() {
 
 	ts.exo.(*exoscaleClientMock).
 		On(
-			"ListTemplates",
-			mock.Anything,    // ctx
-			testInstanceZone, // zone
-			mock.Anything,    // opts
+			"GetTemplateByName",
+			mock.Anything,                         // ctx
+			testInstanceZone,                      // zone
+			testTemplateName,                      // name
+			testConfig.InstanceTemplateVisibility, // visibility
 		).
-		Return([]*egoscale.Template{{
-			ID:   &testTemplateID,
-			Name: &testTemplateName,
-		}}, nil)
-
-	ts.exo.(*exoscaleClientMock).
-		On(
-			"GetTemplate",
-			mock.Anything,    // ctx
-			testInstanceZone, // zone
-			testTemplateID).  // x
 		Return(&egoscale.Template{ID: &testTemplateID}, nil)
 
 	ts.exo.(*exoscaleClientMock).
