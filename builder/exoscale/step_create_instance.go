@@ -41,20 +41,17 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 	template, _ := s.builder.exo.GetTemplate(ctx, s.builder.config.InstanceZone, s.builder.config.InstanceTemplate)
 
 	if template == nil {
-		templates, err := s.builder.exo.ListTemplates(
+
+		template, err = s.builder.exo.GetTemplateByName(
 			ctx,
 			s.builder.config.InstanceZone,
-			egoscale.ListTemplatesWithVisibility(s.builder.config.InstanceTemplateVisibility),
+			s.builder.config.InstanceTemplate,
+			s.builder.config.InstanceTemplateVisibility,
 		)
+
 		if err != nil {
-			ui.Error(fmt.Sprintf("Unable to list compute instance templates: %v", err))
+			ui.Error(fmt.Sprintf("Unable to fetch compute instance templates: %v", err))
 			return multistep.ActionHalt
-		}
-		for _, template = range templates {
-			if *template.ID == s.builder.config.InstanceTemplate ||
-				*template.Name == s.builder.config.InstanceTemplate {
-				break
-			}
 		}
 		if template == nil {
 			ui.Error(fmt.Sprintf(
@@ -63,12 +60,6 @@ func (s *stepCreateInstance) Run(ctx context.Context, state multistep.StateBag) 
 				s.builder.config.InstanceTemplateVisibility,
 				s.builder.config.InstanceZone,
 			))
-			return multistep.ActionHalt
-		}
-
-		template, err = s.builder.exo.GetTemplate(ctx, s.builder.config.InstanceZone, *template.ID)
-		if err != nil {
-			ui.Error(fmt.Sprintf("Unable to retrieve compute instance template: %v", err))
 			return multistep.ActionHalt
 		}
 	}

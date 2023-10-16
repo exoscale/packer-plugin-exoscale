@@ -111,6 +111,16 @@ func (m *exoscaleClientMock) GetTemplate(ctx context.Context, zone string, id st
 	return args.Get(0).(*egoscale.Template), args.Error(1)
 }
 
+func (m *exoscaleClientMock) GetTemplateByName(
+	ctx context.Context,
+	zone string,
+	templateName string,
+	visibility string,
+) (*egoscale.Template, error) {
+	args := m.Called(ctx, zone, templateName, visibility)
+	return args.Get(0).(*egoscale.Template), args.Error(1)
+}
+
 func (m *exoscaleClientMock) ListTemplates(
 	ctx context.Context,
 	zone string,
