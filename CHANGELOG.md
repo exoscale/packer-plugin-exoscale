@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+### Improvements
+
+- builder: use egoscale GetTemplateByName on instance creation #37
+- Bump golang.org/x/net to v0.17.0 #38
+
 ## 0.4.1
 
 ### Improvements
