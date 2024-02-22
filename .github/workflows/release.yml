@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: make go.mk
+      - run: git submodule update --init --recursive go.mk
         shell: bash
 
       - name: Import GPG key
