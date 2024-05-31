@@ -57,7 +57,7 @@ func (ts *testSuite) TestNewConfig() {
 		"user_data":         testConfigUserData,
 		"user_data_file":    testConfigUserDataFile,
 	}}...)
-	ts.Require().ErrorContains(err, "Only one of user_data or user_data_file can be specified.")
+	ts.Require().ErrorContains(err, "only one of user_data or user_data_file can be specified.")
 
 	tmpFile, err := os.CreateTemp(os.TempDir(), testConfigUserDataFile)
 	ts.Require().NoError(err, "unable to create temporary file")
