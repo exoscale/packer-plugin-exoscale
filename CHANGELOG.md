@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- go.mk: lint with staticcheck #41 
+
 ## 0.5.0
 
 ### Improvements
