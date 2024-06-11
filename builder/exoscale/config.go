@@ -106,7 +106,7 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	}
 
 	if config.UserData != "" && config.UserDataFile != "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Only one of user_data or user_data_file can be specified."))
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("only one of user_data or user_data_file can be specified"))
 	} else if config.UserDataFile != "" {
 		if _, err := os.Stat(config.UserDataFile); err != nil {
 			errs = packer.MultiErrorAppend(errs, fmt.Errorf("user_data_file not found: %s", config.UserDataFile))
