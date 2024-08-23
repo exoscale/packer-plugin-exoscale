@@ -5,6 +5,7 @@
 ### Improvements
 
 - go.mk: lint with staticcheck #41 
+- go.mk: upgrade to v2.0.3 #43 
 
 ## 0.5.0
 
