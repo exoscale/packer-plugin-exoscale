@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Bug fixes
+
+- Fix bug with user_data & user_data_file in builder #44
+
 ### Improvements
 
 - go.mk: lint with staticcheck #41 
