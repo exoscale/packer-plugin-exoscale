@@ -35,6 +35,8 @@ type FlatConfig struct {
 	TemplateMaintainer         *string           `mapstructure:"template_maintainer" cty:"template_maintainer" hcl:"template_maintainer"`
 	TemplateVersion            *string           `mapstructure:"template_version" cty:"template_version" hcl:"template_version"`
 	TemplateBuild              *string           `mapstructure:"template_build" cty:"template_build" hcl:"template_build"`
+	UserData                   *string           `mapstructure:"user_data" cty:"user_data" hcl:"user_data"`
+	UserDataFile               *string           `mapstructure:"user_data_file" cty:"user_data_file" hcl:"user_data_file"`
 	TemplateZone               *string           `mapstructure:"template_zone" cty:"template_zone" hcl:"template_zone"`
 	PackerBuildName            *string           `mapstructure:"packer_build_name" cty:"packer_build_name" hcl:"packer_build_name"`
 	PackerBuilderType          *string           `mapstructure:"packer_builder_type" cty:"packer_builder_type" hcl:"packer_builder_type"`
@@ -132,6 +134,8 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"template_maintainer":          &hcldec.AttrSpec{Name: "template_maintainer", Type: cty.String, Required: false},
 		"template_version":             &hcldec.AttrSpec{Name: "template_version", Type: cty.String, Required: false},
 		"template_build":               &hcldec.AttrSpec{Name: "template_build", Type: cty.String, Required: false},
+		"user_data":                    &hcldec.AttrSpec{Name: "user_data", Type: cty.String, Required: false},
+		"user_data_file":               &hcldec.AttrSpec{Name: "user_data_file", Type: cty.String, Required: false},
 		"template_zone":                &hcldec.AttrSpec{Name: "template_zone", Type: cty.String, Required: false},
 		"packer_build_name":            &hcldec.AttrSpec{Name: "packer_build_name", Type: cty.String, Required: false},
 		"packer_builder_type":          &hcldec.AttrSpec{Name: "packer_builder_type", Type: cty.String, Required: false},
