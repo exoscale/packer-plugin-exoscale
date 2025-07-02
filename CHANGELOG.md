@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2
+
+### New
+
+- Added arm64 builds #45 (thanks @nhedger!)
+
 ## 0.5.1
 
 ### Bug fixes
