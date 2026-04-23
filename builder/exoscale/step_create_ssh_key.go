@@ -85,28 +85,35 @@ func (s *stepCreateSSHKey) Run(ctx context.Context, state multistep.StateBag) mu
 func (s *stepCreateSSHKey) Cleanup(state multistep.StateBag) {
 	ui := state.Get("ui").(packer.Ui)
 
-	if state.Get("delete_ssh_key").(bool) {
-		ui.Say("Cleanup: deleting SSH key")
+	// Run() only sets delete_ssh_key when it creates a single-use key itself.
+	// When InstanceSSHKey is user-supplied Run() returns early and the key
+	// belongs to the caller, so we must not delete it and must not panic on
+	// the missing state value (nil cannot be asserted to bool).
+	del, ok := state.Get("delete_ssh_key").(bool)
+	if !ok || !del {
+		return
+	}
 
-		ctx := exoapi.WithEndpoint(
-			context.Background(),
-			exoapi.NewReqEndpoint(s.builder.config.APIEnvironment, s.builder.config.InstanceZone),
-		)
+	ui.Say("Cleanup: deleting SSH key")
 
-		if err := s.builder.exo.DeleteSSHKey(
-			ctx,
-			s.builder.config.InstanceZone,
-			&egoscale.SSHKey{Name: &s.builder.config.InstanceSSHKey},
-		); err != nil {
-			ui.Error(fmt.Sprintf("Unable to delete SSH key: %v", err))
-			return
-		}
+	ctx := exoapi.WithEndpoint(
+		context.Background(),
+		exoapi.NewReqEndpoint(s.builder.config.APIEnvironment, s.builder.config.InstanceZone),
+	)
 
-		if s.builder.config.PackerDebug {
-			if sshPrivateKeyFile := state.Get("delete_ssh_private_key").(string); sshPrivateKeyFile != "" {
-				if err := os.Remove(sshPrivateKeyFile); err != nil {
-					ui.Error(fmt.Sprintf("Unable to delete SSH private key file: %v", err))
-				}
+	if err := s.builder.exo.DeleteSSHKey(
+		ctx,
+		s.builder.config.InstanceZone,
+		&egoscale.SSHKey{Name: &s.builder.config.InstanceSSHKey},
+	); err != nil {
+		ui.Error(fmt.Sprintf("Unable to delete SSH key: %v", err))
+		return
+	}
+
+	if s.builder.config.PackerDebug {
+		if sshPrivateKeyFile, ok := state.Get("delete_ssh_private_key").(string); ok && sshPrivateKeyFile != "" {
+			if err := os.Remove(sshPrivateKeyFile); err != nil {
+				ui.Error(fmt.Sprintf("Unable to delete SSH private key file: %v", err))
 			}
 		}
 	}
