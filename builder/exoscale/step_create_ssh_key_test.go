@@ -54,6 +54,28 @@ func (ts *testSuite) TestStepCreateSSHKey_Run() {
 	ts.Require().NoError(os.Remove(ts.state.Get("delete_ssh_private_key").(string)))
 }
 
+func (ts *testSuite) TestStepCreateSSHKey_Cleanup_NoOpWhenKeyUserSupplied() {
+	// When instance_ssh_key is provided by the user, Run() never sets
+	// delete_ssh_key, so Cleanup() must not panic on the nil type assertion
+	// and must not attempt to delete the caller's key.
+	testConfig := Config{
+		InstanceSSHKey: "user-owned-key",
+		InstanceZone:   testInstanceZone,
+	}
+
+	ts.Require().NotPanics(func() {
+		(&stepCreateSSHKey{
+			builder: &Builder{
+				config: &testConfig,
+				exo:    ts.exo,
+			},
+		}).Cleanup(ts.state)
+	})
+	ts.Require().Empty(ts.ui.(*packer.MockUi).ErrorMessage)
+	// DeleteSSHKey must not have been invoked.
+	ts.exo.(*exoscaleClientMock).AssertNotCalled(ts.T(), "DeleteSSHKey", mock.Anything, mock.Anything, mock.Anything)
+}
+
 func (ts *testSuite) TestStepCreateSSHKey_Cleanup() {
 	var (
 		testConfig = Config{
