@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: true
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Checkout go.mk
         run: make go.mk
       - uses: ./go.mk/.github/actions/setup
