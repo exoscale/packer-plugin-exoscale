@@ -54,6 +54,11 @@ built locally by the [`qemu`][packer-doc-builder-qemu] builder.
   should disable SSH key installation during Compute instance creation.
   Defaults to `false`.
 
+- `template_application_consistent_snapshot_enabled` (boolean) - Whether the
+  registered template supports application-consistent snapshots. Set to `true`
+  only if the image has the QEMU Guest Agent installed and configured to run.
+  If omitted, the API default applies.
+
 - `skip_clean` (boolean) - Whether we should skip removing the image file
   uploaded to SOS after the import process has completed. "true" means that
   we should leave it in the bucket, "false" means deleting it.

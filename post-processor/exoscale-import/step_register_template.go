@@ -3,11 +3,13 @@ package exoscaleimport
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 
 	egoscale "github.com/exoscale/egoscale/v2"
+	egoscalev3 "github.com/exoscale/egoscale/v3"
 )
 
 type stepRegisterTemplate struct {
@@ -21,29 +23,26 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 		ui            = state.Get("ui").(packer.Ui)
 		templates     = state.Get("templates").([]*egoscale.Template)
 
-		registerZone    = s.postProcessor.config.TemplateZones[0]
-		passwordEnabled = !s.postProcessor.config.TemplateDisablePassword
-		sshkeyEnabled   = !s.postProcessor.config.TemplateDisableSSHKey
+		config       = s.postProcessor.config
+		registerZone = config.TemplateZones[0]
 	)
 
 	ui.Say(fmt.Sprintf("Registering compute instance template (in %s)", registerZone))
 
-	template, err := s.postProcessor.exo.RegisterTemplate(
-		ctx,
-		registerZone,
-		&egoscale.Template{
-			BootMode:        &s.postProcessor.config.TemplateBootMode,
-			Build:           nonEmptyStringPtr(s.postProcessor.config.TemplateBuild),
-			Checksum:        nonEmptyStringPtr(imageChecksum),
-			DefaultUser:     nonEmptyStringPtr(s.postProcessor.config.TemplateUsername),
-			Description:     nonEmptyStringPtr(s.postProcessor.config.TemplateDescription),
-			Maintainer:      nonEmptyStringPtr(s.postProcessor.config.TemplateMaintainer),
-			Name:            &s.postProcessor.config.TemplateName,
-			PasswordEnabled: &passwordEnabled,
-			SSHKeyEnabled:   &sshkeyEnabled,
-			URL:             nonEmptyStringPtr(imageURL),
-			Version:         nonEmptyStringPtr(s.postProcessor.config.TemplateVersion),
-		})
+	template, err := s.register(ctx, registerZone, egoscalev3.RegisterTemplateRequest{
+		ApplicationConsistentSnapshotEnabled: config.TemplateApplicationConsistentSnapshotEnabled,
+		BootMode:                             egoscalev3.RegisterTemplateRequestBootMode(config.TemplateBootMode),
+		Build:                                config.TemplateBuild,
+		Checksum:                             imageChecksum,
+		DefaultUser:                          config.TemplateUsername,
+		Description:                          config.TemplateDescription,
+		Maintainer:                           config.TemplateMaintainer,
+		Name:                                 config.TemplateName,
+		PasswordEnabled:                      egoscalev3.Bool(!config.TemplateDisablePassword),
+		SSHKeyEnabled:                        egoscalev3.Bool(!config.TemplateDisableSSHKey),
+		URL:                                  imageURL,
+		Version:                              config.TemplateVersion,
+	})
 	if err != nil {
 		ui.Error(fmt.Sprintf("Unable to register compute instance template: %v", err))
 		return multistep.ActionHalt
@@ -56,3 +55,29 @@ func (s *stepRegisterTemplate) Run(ctx context.Context, state multistep.StateBag
 }
 
 func (s *stepRegisterTemplate) Cleanup(_ multistep.StateBag) {}
+
+func (s *stepRegisterTemplate) register(ctx context.Context, zone string, req egoscalev3.RegisterTemplateRequest) (*egoscale.Template, error) {
+	client := s.postProcessor.registration
+	if err := client.Validate(req); err != nil {
+		return nil, err
+	}
+	op, err := client.RegisterTemplate(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	waitCtx, cancel := context.WithTimeout(ctx, time.Duration(s.postProcessor.config.APITimeout)*time.Second)
+	defer cancel()
+	op, err = client.Wait(waitCtx, op)
+	if err != nil {
+		return nil, err
+	}
+	if op.State != egoscalev3.OperationStateSuccess {
+		return nil, fmt.Errorf("operation %q ended in state %q (%s): %s", op.ID, op.State, op.Reason, op.Message)
+	}
+	if op.Reference == nil || op.Reference.ID == "" {
+		return nil, fmt.Errorf("operation %q returned no template ID", op.ID)
+	}
+
+	return s.postProcessor.exo.GetTemplate(ctx, zone, op.Reference.ID.String())
+}

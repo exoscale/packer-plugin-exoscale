@@ -1,0 +1,248 @@
+package v3
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+)
+
+var (
+	ErrBadRequest                    = errors.New(http.StatusText(http.StatusBadRequest))
+	ErrUnauthorized                  = errors.New(http.StatusText(http.StatusUnauthorized))
+	ErrPaymentRequired               = errors.New(http.StatusText(http.StatusPaymentRequired))
+	ErrForbidden                     = errors.New(http.StatusText(http.StatusForbidden))
+	ErrNotFound                      = errors.New(http.StatusText(http.StatusNotFound))
+	ErrMethodNotAllowed              = errors.New(http.StatusText(http.StatusMethodNotAllowed))
+	ErrNotAcceptable                 = errors.New(http.StatusText(http.StatusNotAcceptable))
+	ErrProxyAuthRequired             = errors.New(http.StatusText(http.StatusProxyAuthRequired))
+	ErrRequestTimeout                = errors.New(http.StatusText(http.StatusRequestTimeout))
+	ErrConflict                      = errors.New(http.StatusText(http.StatusConflict))
+	ErrGone                          = errors.New(http.StatusText(http.StatusGone))
+	ErrLengthRequired                = errors.New(http.StatusText(http.StatusLengthRequired))
+	ErrPreconditionFailed            = errors.New(http.StatusText(http.StatusPreconditionFailed))
+	ErrRequestEntityTooLarge         = errors.New(http.StatusText(http.StatusRequestEntityTooLarge))
+	ErrRequestURITooLong             = errors.New(http.StatusText(http.StatusRequestURITooLong))
+	ErrUnsupportedMediaType          = errors.New(http.StatusText(http.StatusUnsupportedMediaType))
+	ErrRequestedRangeNotSatisfiable  = errors.New(http.StatusText(http.StatusRequestedRangeNotSatisfiable))
+	ErrExpectationFailed             = errors.New(http.StatusText(http.StatusExpectationFailed))
+	ErrTeapot                        = errors.New(http.StatusText(http.StatusTeapot))
+	ErrMisdirectedRequest            = errors.New(http.StatusText(http.StatusMisdirectedRequest))
+	ErrUnprocessableEntity           = errors.New(http.StatusText(http.StatusUnprocessableEntity))
+	ErrLocked                        = errors.New(http.StatusText(http.StatusLocked))
+	ErrFailedDependency              = errors.New(http.StatusText(http.StatusFailedDependency))
+	ErrTooEarly                      = errors.New(http.StatusText(http.StatusTooEarly))
+	ErrUpgradeRequired               = errors.New(http.StatusText(http.StatusUpgradeRequired))
+	ErrPreconditionRequired          = errors.New(http.StatusText(http.StatusPreconditionRequired))
+	ErrTooManyRequests               = errors.New(http.StatusText(http.StatusTooManyRequests))
+	ErrRequestHeaderFieldsTooLarge   = errors.New(http.StatusText(http.StatusRequestHeaderFieldsTooLarge))
+	ErrUnavailableForLegalReasons    = errors.New(http.StatusText(http.StatusUnavailableForLegalReasons))
+	ErrInternalServerError           = errors.New(http.StatusText(http.StatusInternalServerError))
+	ErrNotImplemented                = errors.New(http.StatusText(http.StatusNotImplemented))
+	ErrBadGateway                    = errors.New(http.StatusText(http.StatusBadGateway))
+	ErrServiceUnavailable            = errors.New(http.StatusText(http.StatusServiceUnavailable))
+	ErrGatewayTimeout                = errors.New(http.StatusText(http.StatusGatewayTimeout))
+	ErrHTTPVersionNotSupported       = errors.New(http.StatusText(http.StatusHTTPVersionNotSupported))
+	ErrVariantAlsoNegotiates         = errors.New(http.StatusText(http.StatusVariantAlsoNegotiates))
+	ErrInsufficientStorage           = errors.New(http.StatusText(http.StatusInsufficientStorage))
+	ErrLoopDetected                  = errors.New(http.StatusText(http.StatusLoopDetected))
+	ErrNotExtended                   = errors.New(http.StatusText(http.StatusNotExtended))
+	ErrNetworkAuthenticationRequired = errors.New(http.StatusText(http.StatusNetworkAuthenticationRequired))
+)
+
+var httpStatusCodeErrors = map[int]error{
+	http.StatusBadRequest:                    ErrBadRequest,
+	http.StatusUnauthorized:                  ErrUnauthorized,
+	http.StatusPaymentRequired:               ErrPaymentRequired,
+	http.StatusForbidden:                     ErrForbidden,
+	http.StatusNotFound:                      ErrNotFound,
+	http.StatusMethodNotAllowed:              ErrMethodNotAllowed,
+	http.StatusNotAcceptable:                 ErrNotAcceptable,
+	http.StatusProxyAuthRequired:             ErrProxyAuthRequired,
+	http.StatusRequestTimeout:                ErrRequestTimeout,
+	http.StatusConflict:                      ErrConflict,
+	http.StatusGone:                          ErrGone,
+	http.StatusLengthRequired:                ErrLengthRequired,
+	http.StatusPreconditionFailed:            ErrPreconditionFailed,
+	http.StatusRequestEntityTooLarge:         ErrRequestEntityTooLarge,
+	http.StatusRequestURITooLong:             ErrRequestURITooLong,
+	http.StatusUnsupportedMediaType:          ErrUnsupportedMediaType,
+	http.StatusRequestedRangeNotSatisfiable:  ErrRequestedRangeNotSatisfiable,
+	http.StatusExpectationFailed:             ErrExpectationFailed,
+	http.StatusTeapot:                        ErrTeapot,
+	http.StatusMisdirectedRequest:            ErrMisdirectedRequest,
+	http.StatusUnprocessableEntity:           ErrUnprocessableEntity,
+	http.StatusLocked:                        ErrLocked,
+	http.StatusFailedDependency:              ErrFailedDependency,
+	http.StatusTooEarly:                      ErrTooEarly,
+	http.StatusUpgradeRequired:               ErrUpgradeRequired,
+	http.StatusPreconditionRequired:          ErrPreconditionRequired,
+	http.StatusTooManyRequests:               ErrTooManyRequests,
+	http.StatusRequestHeaderFieldsTooLarge:   ErrRequestHeaderFieldsTooLarge,
+	http.StatusUnavailableForLegalReasons:    ErrUnavailableForLegalReasons,
+	http.StatusInternalServerError:           ErrInternalServerError,
+	http.StatusNotImplemented:                ErrNotImplemented,
+	http.StatusBadGateway:                    ErrBadGateway,
+	http.StatusServiceUnavailable:            ErrServiceUnavailable,
+	http.StatusGatewayTimeout:                ErrGatewayTimeout,
+	http.StatusHTTPVersionNotSupported:       ErrHTTPVersionNotSupported,
+	http.StatusVariantAlsoNegotiates:         ErrVariantAlsoNegotiates,
+	http.StatusInsufficientStorage:           ErrInsufficientStorage,
+	http.StatusLoopDetected:                  ErrLoopDetected,
+	http.StatusNotExtended:                   ErrNotExtended,
+	http.StatusNetworkAuthenticationRequired: ErrNetworkAuthenticationRequired,
+}
+
+// APIError is the structured error returned for HTTP 4xx/5xx responses.
+// It wraps the HTTP sentinel error (e.g. ErrNotFound) so that errors.Is
+// checks against sentinels continue to work unchanged.
+type APIError struct {
+	// sentinel is the mapped HTTP status error (e.g. ErrNotFound).
+	sentinel error
+	// Message is the plain server message (from "message" or "error" fields).
+	Message string
+	// Title is the RFC 9457 "title" field.
+	Title string
+	// Detail is the RFC 9457 "detail" field.
+	Detail string
+	// Errors holds the RFC 9457 "errors" entries.
+	Errors []APIErrorEntry
+	// StatusCode is the HTTP response status code.
+	StatusCode int
+	// Response is the response body decoded into the schema the OpenAPI spec
+	// declares for StatusCode on this operation (e.g. *RateLimited for a 429).
+	// It is nil when the operation declares no schema for that status code
+	// or when the body cannot be decoded into it.
+	Response any
+
+	// body is the raw response body, kept to decode Response.
+	body []byte
+}
+
+// APIErrorEntry is one item from the RFC 9457 "errors" array.
+// Location is a JSONPath expression (e.g. "$['some-field']") when the server
+// provides field-level detail; it is empty for plain string error entries.
+type APIErrorEntry struct {
+	Detail   string
+	Location string
+}
+
+// Error returns the status text followed by the non-empty title, message and detail of the response.
+func (e *APIError) Error() string {
+	// Generic problem types repeat the status text as title, so it is skipped there.
+	title := e.Title
+	if title == e.sentinel.Error() {
+		title = ""
+	}
+	var parts []string
+	for _, p := range []string{title, e.Message, e.Detail} {
+		if p != "" {
+			parts = append(parts, p)
+		}
+	}
+	return fmt.Sprintf("%s: %s", e.sentinel.Error(), strings.Join(parts, ": "))
+}
+func (e *APIError) Unwrap() error { return e.sentinel }
+
+func handleHTTPErrorResp(resp *http.Response) error {
+	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
+		defer resp.Body.Close() // prevent connection leak on error responses
+
+		var res struct {
+			Message string          `json:"message"`
+			Error   string          `json:"error"`
+			Title   string          `json:"title"`
+			Detail  string          `json:"detail"`
+			Errors  json.RawMessage `json:"errors"`
+		}
+
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("error reading response body: %s", err)
+		}
+
+		if json.Valid(data) {
+			if err = json.Unmarshal(data, &res); err != nil {
+				return fmt.Errorf("error unmarshaling response: %s", err)
+			}
+		} else {
+			res.Message = string(data)
+		}
+
+		sentinel, ok := httpStatusCodeErrors[resp.StatusCode]
+		if !ok {
+			sentinel = fmt.Errorf("HTTP error %d", resp.StatusCode)
+		}
+
+		apiErr := &APIError{
+			sentinel:   sentinel,
+			Message:    res.Message,
+			Title:      res.Title,
+			Detail:     res.Detail,
+			StatusCode: resp.StatusCode,
+			body:       data,
+		}
+		if res.Message == "" && res.Error != "" {
+			apiErr.Message = res.Error
+		}
+		apiErr.Errors = parseErrorEntries(res.Errors)
+
+		return apiErr
+	}
+
+	return nil
+}
+
+// decodeAPIErrorResponse decodes the body of an *APIError into the type the
+// OpenAPI spec declares for its status code, and stores it in APIError.Response.
+// responses maps each declared status code to a constructor of its body type.
+// err is returned as is, so the caller can wrap it unconditionally.
+func decodeAPIErrorResponse(err error, responses map[int]func() any) error {
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
+		return err
+	}
+
+	newResponse, ok := responses[apiErr.StatusCode]
+	if !ok {
+		return err
+	}
+
+	v := newResponse()
+	if json.Unmarshal(apiErr.body, v) == nil {
+		apiErr.Response = v
+	}
+
+	return err
+}
+
+func parseErrorEntries(raw json.RawMessage) []APIErrorEntry {
+	if len(raw) == 0 {
+		return nil
+	}
+
+	var objErrors []struct {
+		Detail   string `json:"detail"`
+		Location string `json:"location"`
+	}
+	if json.Unmarshal(raw, &objErrors) == nil && len(objErrors) > 0 {
+		entries := make([]APIErrorEntry, len(objErrors))
+		for i, e := range objErrors {
+			entries[i] = APIErrorEntry{Detail: e.Detail, Location: e.Location}
+		}
+		return entries
+	}
+
+	var strErrors []string
+	if json.Unmarshal(raw, &strErrors) == nil {
+		entries := make([]APIErrorEntry, len(strErrors))
+		for i, e := range strErrors {
+			entries[i] = APIErrorEntry{Detail: e}
+		}
+		return entries
+	}
+
+	return nil
+}

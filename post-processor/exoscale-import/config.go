@@ -19,24 +19,25 @@ const (
 )
 
 type Config struct {
-	SOSEndpoint             string   `mapstructure:"sos_endpoint"`
-	APIEnvironment          string   `mapstructure:"api_environment"`
-	APIKey                  string   `mapstructure:"api_key"`
-	APISecret               string   `mapstructure:"api_secret"`
-	APITimeout              int64    `mapstructure:"api_timeout"`
-	ImageBucket             string   `mapstructure:"image_bucket"`
-	ImageZone               string   `mapstructure:"image_zone"`
-	TemplateZones           []string `mapstructure:"template_zones"`
-	TemplateName            string   `mapstructure:"template_name"`
-	TemplateDescription     string   `mapstructure:"template_description"`
-	TemplateUsername        string   `mapstructure:"template_username"`
-	TemplateBootMode        string   `mapstructure:"template_boot_mode"`
-	TemplateDisablePassword bool     `mapstructure:"template_disable_password"`
-	TemplateDisableSSHKey   bool     `mapstructure:"template_disable_sshkey"`
-	TemplateMaintainer      string   `mapstructure:"template_maintainer"`
-	TemplateVersion         string   `mapstructure:"template_version"`
-	TemplateBuild           string   `mapstructure:"template_build"`
-	SkipClean               bool     `mapstructure:"skip_clean"`
+	SOSEndpoint                                  string   `mapstructure:"sos_endpoint"`
+	APIEnvironment                               string   `mapstructure:"api_environment"`
+	APIKey                                       string   `mapstructure:"api_key"`
+	APISecret                                    string   `mapstructure:"api_secret"`
+	APITimeout                                   int64    `mapstructure:"api_timeout"`
+	ImageBucket                                  string   `mapstructure:"image_bucket"`
+	ImageZone                                    string   `mapstructure:"image_zone"`
+	TemplateZones                                []string `mapstructure:"template_zones"`
+	TemplateName                                 string   `mapstructure:"template_name"`
+	TemplateDescription                          string   `mapstructure:"template_description"`
+	TemplateUsername                             string   `mapstructure:"template_username"`
+	TemplateBootMode                             string   `mapstructure:"template_boot_mode"`
+	TemplateDisablePassword                      bool     `mapstructure:"template_disable_password"`
+	TemplateDisableSSHKey                        bool     `mapstructure:"template_disable_sshkey"`
+	TemplateMaintainer                           string   `mapstructure:"template_maintainer"`
+	TemplateVersion                              string   `mapstructure:"template_version"`
+	TemplateBuild                                string   `mapstructure:"template_build"`
+	TemplateApplicationConsistentSnapshotEnabled *bool    `mapstructure:"template_application_consistent_snapshot_enabled"`
+	SkipClean                                    bool     `mapstructure:"skip_clean"`
 	// Deprecated
 	TemplateZone string `mapstructure:"template_zone"`
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- Add `template_application_consistent_snapshot_enabled` to the `exoscale-import` post-processor.
+
 ## 0.5.2
 
 ### New
