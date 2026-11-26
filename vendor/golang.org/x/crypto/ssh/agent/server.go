@@ -5,7 +5,6 @@
 package agent
 
 import (
-	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -36,7 +35,7 @@ func (s *server) processRequestBytes(reqData []byte) []byte {
 		return []byte{agentFailure}
 	}
 
-	if err == nil && rep == nil {
+	if rep == nil {
 		return []byte{agentSuccess}
 	}
 
@@ -203,6 +202,9 @@ func parseConstraints(constraints []byte) (lifetimeSecs uint32, confirmBeforeUse
 	for len(constraints) != 0 {
 		switch constraints[0] {
 		case agentConstrainLifetime:
+			if len(constraints) < 5 {
+				return 0, false, nil, io.ErrUnexpectedEOF
+			}
 			lifetimeSecs = binary.BigEndian.Uint32(constraints[1:5])
 			constraints = constraints[5:]
 		case agentConstrainConfirm:
@@ -237,13 +239,35 @@ func setConstraints(key *AddedKey, constraintBytes []byte) error {
 	return nil
 }
 
+// checkRSAKeyParams enforces the same bounds as parseRSA in the ssh
+// package, and additionally caps the prime factors. Without this,
+// the rsa.PrivateKey built from an Add request would call Precompute()
+// on arbitrary inputs; the CRT coefficient recomputation is cubic in
+// |p| and can consume excessive CPU on oversized keys.
+func checkRSAKeyParams(N, E, P, Q *big.Int) error {
+	if N.BitLen() > 16384 {
+		return errors.New("agent: RSA modulus too large")
+	}
+	if P.BitLen() > 8192 || Q.BitLen() > 8192 {
+		return errors.New("agent: RSA prime too large")
+	}
+	if E.BitLen() > 24 {
+		return errors.New("agent: RSA public exponent too large")
+	}
+	e := E.Int64()
+	if e < 3 || e&1 == 0 {
+		return errors.New("agent: incorrect RSA public exponent")
+	}
+	return nil
+}
+
 func parseRSAKey(req []byte) (*AddedKey, error) {
 	var k rsaKeyMsg
 	if err := ssh.Unmarshal(req, &k); err != nil {
 		return nil, err
 	}
-	if k.E.BitLen() > 30 {
-		return nil, errors.New("agent: RSA public exponent too large")
+	if err := checkRSAKeyParams(k.N, k.E, k.P, k.Q); err != nil {
+		return nil, err
 	}
 	priv := &rsa.PrivateKey{
 		PublicKey: rsa.PublicKey{
@@ -267,33 +291,12 @@ func parseEd25519Key(req []byte) (*AddedKey, error) {
 	if err := ssh.Unmarshal(req, &k); err != nil {
 		return nil, err
 	}
+	if len(k.Priv) != ed25519.PrivateKeySize {
+		return nil, fmt.Errorf("agent: bad ED25519 key size: %d", len(k.Priv))
+	}
 	priv := ed25519.PrivateKey(k.Priv)
 
 	addedKey := &AddedKey{PrivateKey: &priv, Comment: k.Comments}
-	if err := setConstraints(addedKey, k.Constraints); err != nil {
-		return nil, err
-	}
-	return addedKey, nil
-}
-
-func parseDSAKey(req []byte) (*AddedKey, error) {
-	var k dsaKeyMsg
-	if err := ssh.Unmarshal(req, &k); err != nil {
-		return nil, err
-	}
-	priv := &dsa.PrivateKey{
-		PublicKey: dsa.PublicKey{
-			Parameters: dsa.Parameters{
-				P: k.P,
-				Q: k.Q,
-				G: k.G,
-			},
-			Y: k.Y,
-		},
-		X: k.X,
-	}
-
-	addedKey := &AddedKey{PrivateKey: priv, Comment: k.Comments}
 	if err := setConstraints(addedKey, k.Constraints); err != nil {
 		return nil, err
 	}
@@ -332,6 +335,9 @@ func parseEd25519Cert(req []byte) (*AddedKey, error) {
 	pubKey, err := ssh.ParsePublicKey(k.CertBytes)
 	if err != nil {
 		return nil, err
+	}
+	if len(k.Priv) != ed25519.PrivateKeySize {
+		return nil, fmt.Errorf("agent: bad ED25519 key size: %d", len(k.Priv))
 	}
 	priv := ed25519.PrivateKey(k.Priv)
 	cert, ok := pubKey.(*ssh.Certificate)
@@ -390,8 +396,8 @@ func parseRSACert(req []byte) (*AddedKey, error) {
 		return nil, fmt.Errorf("agent: Unmarshal failed to parse public key: %v", err)
 	}
 
-	if rsaPub.E.BitLen() > 30 {
-		return nil, errors.New("agent: RSA public exponent too large")
+	if err := checkRSAKeyParams(rsaPub.N, rsaPub.E, k.P, k.Q); err != nil {
+		return nil, err
 	}
 
 	priv := rsa.PrivateKey{
@@ -405,48 +411,6 @@ func parseRSACert(req []byte) (*AddedKey, error) {
 	priv.Precompute()
 
 	addedKey := &AddedKey{PrivateKey: &priv, Certificate: cert, Comment: k.Comments}
-	if err := setConstraints(addedKey, k.Constraints); err != nil {
-		return nil, err
-	}
-	return addedKey, nil
-}
-
-func parseDSACert(req []byte) (*AddedKey, error) {
-	var k dsaCertMsg
-	if err := ssh.Unmarshal(req, &k); err != nil {
-		return nil, err
-	}
-	pubKey, err := ssh.ParsePublicKey(k.CertBytes)
-	if err != nil {
-		return nil, err
-	}
-	cert, ok := pubKey.(*ssh.Certificate)
-	if !ok {
-		return nil, errors.New("agent: bad DSA certificate")
-	}
-
-	// A DSA publickey as marshaled by dsaPublicKey.Marshal() in keys.go
-	var w struct {
-		Name       string
-		P, Q, G, Y *big.Int
-	}
-	if err := ssh.Unmarshal(cert.Key.Marshal(), &w); err != nil {
-		return nil, fmt.Errorf("agent: Unmarshal failed to parse public key: %v", err)
-	}
-
-	priv := &dsa.PrivateKey{
-		PublicKey: dsa.PublicKey{
-			Parameters: dsa.Parameters{
-				P: w.P,
-				Q: w.Q,
-				G: w.G,
-			},
-			Y: w.Y,
-		},
-		X: k.X,
-	}
-
-	addedKey := &AddedKey{PrivateKey: priv, Certificate: cert, Comment: k.Comments}
 	if err := setConstraints(addedKey, k.Constraints); err != nil {
 		return nil, err
 	}
@@ -506,16 +470,12 @@ func (s *server) insertIdentity(req []byte) error {
 	switch record.Type {
 	case ssh.KeyAlgoRSA:
 		addedKey, err = parseRSAKey(req)
-	case ssh.KeyAlgoDSA:
-		addedKey, err = parseDSAKey(req)
 	case ssh.KeyAlgoECDSA256, ssh.KeyAlgoECDSA384, ssh.KeyAlgoECDSA521:
 		addedKey, err = parseECDSAKey(req)
 	case ssh.KeyAlgoED25519:
 		addedKey, err = parseEd25519Key(req)
 	case ssh.CertAlgoRSAv01:
 		addedKey, err = parseRSACert(req)
-	case ssh.CertAlgoDSAv01:
-		addedKey, err = parseDSACert(req)
 	case ssh.CertAlgoECDSA256v01, ssh.CertAlgoECDSA384v01, ssh.CertAlgoECDSA521v01:
 		addedKey, err = parseECDSACert(req)
 	case ssh.CertAlgoED25519v01:

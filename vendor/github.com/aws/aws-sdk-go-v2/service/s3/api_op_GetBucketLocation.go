@@ -15,19 +15,53 @@ import (
 	smithyxml "github.com/aws/smithy-go/encoding/xml"
 	smithyio "github.com/aws/smithy-go/io"
 	"github.com/aws/smithy-go/middleware"
+	"github.com/aws/smithy-go/ptr"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"io"
 )
 
+// Using the GetBucketLocation operation is no longer a best practice. To return
+// the Region that a bucket resides in, we recommend that you use the [HeadBucket]operation
+// instead. For backward compatibility, Amazon S3 continues to support the
+// GetBucketLocation operation.
+//
 // Returns the Region the bucket resides in. You set the bucket's Region using the
 // LocationConstraint request parameter in a CreateBucket request. For more
-// information, see CreateBucket (https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html)
-// . To use this implementation of the operation, you must be the bucket owner. To
-// use this API against an access point, provide the alias of the access point in
-// place of the bucket name. The following operations are related to
-// GetBucketLocation :
-//   - GetObject (https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html)
-//   - CreateBucket (https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html)
+// information, see [CreateBucket].
+//
+// In a bucket's home Region, calls to the GetBucketLocation operation are
+// governed by the bucket's policy. In other Regions, the bucket policy doesn't
+// apply, which means that cross-account access won't be authorized. However, calls
+// to the HeadBucket operation always return the bucket’s location through an HTTP
+// response header, whether access to the bucket is authorized or not. Therefore,
+// we recommend using the HeadBucket operation for bucket Region discovery and to
+// avoid using the GetBucketLocation operation.
+//
+// When you use this API operation with an access point, provide the alias of the
+// access point in place of the bucket name.
+//
+// When you use this API operation with an Object Lambda access point, provide the
+// alias of the Object Lambda access point in place of the bucket name. If the
+// Object Lambda access point alias in a request is not valid, the error code
+// InvalidAccessPointAliasError is returned. For more information about
+// InvalidAccessPointAliasError , see [List of Error Codes].
+//
+// This operation is not supported for directory buckets.
+//
+// The following operations are related to GetBucketLocation :
+//
+// [GetObject]
+//
+// [CreateBucket]
+//
+// You must URL encode any signed header values that contain spaces. For example,
+// if your header value is my file.txt , containing two spaces after my , you must
+// URL encode this value to my%20%20file.txt .
+//
+// [List of Error Codes]: https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
+// [CreateBucket]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html
+// [GetObject]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html
+// [HeadBucket]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadBucket.html
 func (c *Client) GetBucketLocation(ctx context.Context, params *GetBucketLocationInput, optFns ...func(*Options)) (*GetBucketLocationOutput, error) {
 	if params == nil {
 		params = &GetBucketLocationInput{}
@@ -47,22 +81,43 @@ type GetBucketLocationInput struct {
 
 	// The name of the bucket for which to get the location.
 	//
+	// When you use this API operation with an access point, provide the alias of the
+	// access point in place of the bucket name.
+	//
+	// When you use this API operation with an Object Lambda access point, provide the
+	// alias of the Object Lambda access point in place of the bucket name. If the
+	// Object Lambda access point alias in a request is not valid, the error code
+	// InvalidAccessPointAliasError is returned. For more information about
+	// InvalidAccessPointAliasError , see [List of Error Codes].
+	//
+	// [List of Error Codes]: https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
+	//
 	// This member is required.
 	Bucket *string
 
-	// The account ID of the expected bucket owner. If the bucket is owned by a
-	// different account, the request fails with the HTTP status code 403 Forbidden
-	// (access denied).
+	// The account ID of the expected bucket owner. If the account ID that you provide
+	// does not match the actual owner of the bucket, the request fails with the HTTP
+	// status code 403 Forbidden (access denied).
 	ExpectedBucketOwner *string
 
 	noSmithyDocumentSerde
 }
 
+func (in *GetBucketLocationInput) bindEndpointParams(p *EndpointParameters) {
+
+	p.Bucket = in.Bucket
+	p.UseS3ExpressControlEndpoint = ptr.Bool(true)
+}
+
 type GetBucketLocationOutput struct {
 
 	// Specifies the Region where the bucket resides. For a list of all the Amazon S3
-	// supported location constraints by Region, see Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region)
-	// . Buckets in Region us-east-1 have a LocationConstraint of null .
+	// supported location constraints by Region, see [Regions and Endpoints].
+	//
+	// Buckets in Region us-east-1 have a LocationConstraint of null . Buckets with a
+	// LocationConstraint of EU reside in eu-west-1 .
+	//
+	// [Regions and Endpoints]: https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
 	LocationConstraint types.BucketLocationConstraint
 
 	// Metadata pertaining to the operation's result.
@@ -72,6 +127,9 @@ type GetBucketLocationOutput struct {
 }
 
 func (c *Client) addOperationGetBucketLocationMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsRestxml_serializeOpGetBucketLocation{}, middleware.After)
 	if err != nil {
 		return err
@@ -80,34 +138,41 @@ func (c *Client) addOperationGetBucketLocationMiddlewares(stack *middleware.Stac
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetBucketLocation"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options, c); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -119,7 +184,19 @@ func (c *Client) addOperationGetBucketLocationMiddlewares(stack *middleware.Stac
 	if err = swapDeserializerHelper(stack); err != nil {
 		return err
 	}
-	if err = swapWithCustomHTTPSignerMiddleware(stack, options); err != nil {
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addPutBucketContextMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addIsExpressUserAgent(stack); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addOpGetBucketLocationValidationMiddleware(stack); err != nil {
@@ -131,7 +208,7 @@ func (c *Client) addOperationGetBucketLocationMiddlewares(stack *middleware.Stac
 	if err = addMetadataRetrieverMiddleware(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecursionDetection(stack); err != nil {
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addGetBucketLocationUpdateEndpoint(stack, options); err != nil {
@@ -147,6 +224,21 @@ func (c *Client) addOperationGetBucketLocationMiddlewares(stack *middleware.Stac
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSerializeImmutableHostnameBucketMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addInterceptBeforeRetryLoop(stack, options); err != nil {
+		return err
+	}
+	if err = addInterceptAttempt(stack, options); err != nil {
+		return err
+	}
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -208,11 +300,17 @@ func swapDeserializerHelper(stack *middleware.Stack) error {
 	return nil
 }
 
+func (v *GetBucketLocationInput) bucket() (string, bool) {
+	if v.Bucket == nil {
+		return "", false
+	}
+	return *v.Bucket, true
+}
+
 func newServiceMetadataMiddleware_opGetBucketLocation(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "s3",
 		OperationName: "GetBucketLocation",
 	}
 }

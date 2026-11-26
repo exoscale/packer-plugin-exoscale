@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Bug fixes
+
+- Update dependencies to address security advisories.
+
 ## 0.5.2
 
 ### New
