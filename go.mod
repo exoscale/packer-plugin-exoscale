@@ -1,6 +1,6 @@
 module github.com/exoscale/packer-plugin-exoscale
 
-go 1.23
+go 1.26
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.18.0
