@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -18,6 +19,8 @@ import (
 
 	egoscale "github.com/exoscale/egoscale/v2"
 	exoapi "github.com/exoscale/egoscale/v2/api"
+	egoscalev3 "github.com/exoscale/egoscale/v3"
+	exocredentials "github.com/exoscale/egoscale/v3/credentials"
 )
 
 const (
@@ -26,15 +29,16 @@ const (
 	artificeBuilderID = "packer.post-processor.artifice"
 )
 
+var userAgent = "Exoscale-Packer-Post-Processor/" + version.SDKVersion.FormattedVersion()
+
 func init() {
-	egoscale.UserAgent = fmt.Sprintf("Exoscale-Packer-Post-Processor/%s %s",
-		version.SDKVersion.FormattedVersion(), egoscale.UserAgent)
+	egoscale.UserAgent = userAgent + " " + egoscale.UserAgent
 }
 
 type exoscaleClient interface {
 	CopyTemplate(context.Context, string, *egoscale.Template, string) (*egoscale.Template, error)
 	DeleteTemplate(context.Context, string, *egoscale.Template) error
-	RegisterTemplate(context.Context, string, *egoscale.Template) (*egoscale.Template, error)
+	GetTemplate(context.Context, string, string) (*egoscale.Template, error)
 }
 
 type s3Client interface {
@@ -44,10 +48,11 @@ type s3Client interface {
 }
 
 type PostProcessor struct {
-	config *Config
-	runner multistep.Runner
-	exo    exoscaleClient
-	sos    s3Client
+	config       *Config
+	runner       multistep.Runner
+	exo          exoscaleClient
+	registration *egoscalev3.Client
+	sos          s3Client
 }
 
 func (p *PostProcessor) Configure(raws ...interface{}) error {
@@ -106,6 +111,17 @@ func (p *PostProcessor) PostProcess(
 		return nil, false, false, fmt.Errorf("unable to initialize Exoscale client: %w", err)
 	}
 	p.exo = exo
+
+	registerEndpoint := exoapi.NewReqEndpoint(p.config.APIEnvironment, p.config.TemplateZones[0])
+	endpoint := url.URL{Scheme: "https", Host: registerEndpoint.Host(), Path: "/" + exoapi.Prefix}
+	p.registration, err = egoscalev3.NewClient(
+		exocredentials.NewStaticCredentials(p.config.APIKey, p.config.APISecret),
+		egoscalev3.ClientOptWithEndpoint(egoscalev3.Endpoint(endpoint.String())),
+		egoscalev3.ClientOptWithUserAgent(userAgent),
+	)
+	if err != nil {
+		return nil, false, false, fmt.Errorf("unable to initialize template registration client: %w", err)
+	}
 
 	sos, err := p.newSOSClient(ctx)
 	if err != nil {

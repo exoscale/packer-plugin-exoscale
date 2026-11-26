@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### New
+
+- Add `template_application_consistent_snapshot_enabled` to the `exoscale-import` post-processor.
+
 ### Bug fixes
 
 - Update dependencies to address security advisories.

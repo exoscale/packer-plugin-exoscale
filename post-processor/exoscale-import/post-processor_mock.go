@@ -28,12 +28,8 @@ func (m *exoscaleClientMock) DeleteTemplate(ctx context.Context, zone string, te
 	return args.Error(0)
 }
 
-func (m *exoscaleClientMock) RegisterTemplate(
-	ctx context.Context,
-	zone string,
-	template *egoscale.Template,
-) (*egoscale.Template, error) {
-	args := m.Called(ctx, zone, template)
+func (m *exoscaleClientMock) GetTemplate(ctx context.Context, zone, id string) (*egoscale.Template, error) {
+	args := m.Called(ctx, zone, id)
 	return args.Get(0).(*egoscale.Template), args.Error(1)
 }
 
