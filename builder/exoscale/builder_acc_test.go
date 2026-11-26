@@ -19,6 +19,7 @@ var (
 	testAccSnapshotDownload     = true
 	testAccSnapshotDownloadPath = filepath.Join(os.TempDir(), "packer-plugin-test")
 	testAccTemplateName         = "packer-plugin-test-" + new(testSuite).randomString(6)
+	testAccTemplateBootMode     = "uefi" // public Ubuntu templates are UEFI-boot; the API derives the template boot mode from the image
 	testAccTemplateZones        = []string{"ch-gva-2", "ch-dk-2"}
 	testAccTemplateDescription  = new(testSuite).randomString(6)
 	testAccTemplateUsername     = "packer"
@@ -56,6 +57,7 @@ func TestAccBuilder(t *testing.T) {
 
 		"template_zones":       testAccTemplateZones,
 		"template_name":        testAccTemplateName,
+		"template_boot_mode":   testAccTemplateBootMode,
 		"template_description": testAccTemplateDescription,
 		"template_username":    testAccTemplateUsername,
 		"template_maintainer":  testAccTemplateMaintainer,
@@ -74,7 +76,7 @@ func TestAccBuilder(t *testing.T) {
 		require.NotNil(t, template.ID)
 		require.Equal(t, testAccTemplateName, *template.Name)
 		require.Equal(t, testAccTemplateDescription, *template.Description)
-		require.Equal(t, defaultTemplateBootMode, *template.BootMode)
+		require.Equal(t, testAccTemplateBootMode, *template.BootMode)
 		require.Equal(t, testAccTemplateUsername, *template.DefaultUser)
 		require.Equal(t, testAccTemplateMaintainer, *template.Maintainer)
 		require.Equal(t, testAccTemplateVersion, *template.Version)
