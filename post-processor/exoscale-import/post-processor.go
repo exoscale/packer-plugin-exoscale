@@ -67,6 +67,27 @@ func (p *PostProcessor) Configure(raws ...interface{}) error {
 	return nil
 }
 
+func (p *PostProcessor) newSOSClient(ctx context.Context) (*s3.Client, error) {
+	cfg, err := awsconfig.LoadDefaultConfig(
+		ctx,
+		awsconfig.WithRegion(p.config.ImageZone),
+		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			p.config.APIKey,
+			p.config.APISecret,
+			"")),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(p.config.SOSEndpoint)
+		o.UsePathStyle = true
+		// Preserve the existing SOS request format instead of adding checksum trailers.
+		o.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
+	}), nil
+}
+
 func (p *PostProcessor) PostProcess(
 	ctx context.Context,
 	ui packer.Ui,
@@ -102,30 +123,11 @@ func (p *PostProcessor) PostProcess(
 		return nil, false, false, fmt.Errorf("unable to initialize template registration client: %w", err)
 	}
 
-	cfg, err := awsconfig.LoadDefaultConfig(
-		ctx,
-		awsconfig.WithRegion(p.config.ImageZone),
-
-		awsconfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
-			func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-				return aws.Endpoint{
-					URL:           p.config.SOSEndpoint,
-					SigningRegion: p.config.ImageZone,
-				}, nil
-			})),
-
-		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
-			p.config.APIKey,
-			p.config.APISecret,
-			"")),
-	)
+	sos, err := p.newSOSClient(ctx)
 	if err != nil {
 		return nil, false, false, fmt.Errorf("unable to initialize SOS client: %w", err)
 	}
-
-	p.sos = s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-	})
+	p.sos = sos
 
 	state := new(multistep.BasicStateBag)
 	state.Put("ui", ui)

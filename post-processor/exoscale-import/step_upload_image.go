@@ -60,7 +60,9 @@ func (s *stepUploadImage) Run(ctx context.Context, state multistep.StateBag) mul
 	}
 
 	output, err := s3manager.
-		NewUploader(s.postProcessor.sos).
+		NewUploader(s.postProcessor.sos, func(u *s3manager.Uploader) {
+			u.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
+		}).
 		Upload(ctx,
 			&s3.PutObjectInput{
 				Bucket:     aws.String(s.postProcessor.config.ImageBucket),
